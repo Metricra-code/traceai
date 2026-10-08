@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "bun --bun next dev --port 3000",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "bun --bun next typegen && tsc --noEmit",
     "build": "bun --bun next build",
     "build:cloudflare": "opennextjs-cloudflare build",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",

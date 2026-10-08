@@ -15,3 +15,4 @@ test-results/
 .lazyweb/
 packages/database/seed.sql
 .local/
+apps/web/next-env.d.ts
