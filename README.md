@@ -13,7 +13,7 @@ and project-scoped analytics on Cloudflare Workers/D1. No paid AI credentials ar
 
 Verified: 103 unit tests, 59 real Worker/D1 integration cases, 7 built-workerd Playwright journeys and
 a live account → SDK → D1 → replay/revoke smoke test. All seven journeys also passed on the live site.
-Next-development also passed all seven journeys. Remote-CI evidence is tracked separately in [verification](docs/verification.md); a successful build alone is not a deployment.
+Next-development also passed all seven journeys. The [published runtime CI](https://github.com/Metricra-code/traceai/actions/runs/37831615087) is green, including both E2E modes. See [verification](docs/verification.md); a successful build alone is not a deployment.
 
 ## What to explore
 

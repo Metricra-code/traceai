@@ -5,30 +5,32 @@ Local checks, live deployment and remote CI are distinct; no unrun check is mark
 
 ## Verified evidence
 
-| Check                     | Evidence                                                                                                                |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Fresh installation        | `bun install --frozen-lockfile` passed on a clean isolated dependency tree                                              |
-| Workspace unit suite      | **103/103 passed in 3.44s** on the complete MVP; whole-workspace lint, strict typecheck and formatting also passed      |
-| SDK unit suite            | 58/58 Vitest tests passed; result/error identity, bounds, retries, byte budgets, flush/shutdown races                   |
-| Analytics unit suite      | 28/28 passed; percentiles, exact money/known subtotal, zero-fill, UTC windows and scope-bound UTF-8 cursors             |
-| Analytics Worker/D1 suite | 23/23 passed after real migrations; auth/scope, P95, both pagination orders, filters, row cap and read-only demo        |
-| Entire Worker/D1 suite    | **59/59 passed in 13.47s** against actual workerd/D1: auth, keys, analytics and timestamp pricing regressions           |
-| Ingestion Worker/D1 suite | 16/16 passed; persistence, idempotency, fractional/UTC pricing windows, 50 events, rollback/revocation/rate limits      |
-| Built OpenNext E2E        | **7/7 Playwright cases passed in 22.4s** against actual workerd: demo/mobile, management/SDK lifecycle and security     |
-| Native Bun Next-dev E2E   | **7/7 Playwright cases passed in 49.9s** on Next16.3.8, including demo/mobile, real management/SDK and security         |
-| Final workspace build     | `bun run build` passed: shared, SDK, database, Next and API Worker dry-run                                              |
-| Live browser E2E          | **7/7 Playwright cases passed in 19.4s** on deployed HTTPS, including management/SDK/key rotation, login and security   |
-| API source checks         | API typecheck and scoped analytics ESLint/Prettier passed                                                               |
-| SDK package               | ESM/types build and independent Node/Bun consumer import/trace/shutdown passed; no private runtime workspace dependency |
-| SDK benchmark             | Native Bun stub transport: 10,000 events, 200 batches, zero drops; not provider/network latency                         |
-| Real SDK → Worker → D1    | Verified locally and deployed: original success/error preserved, two persisted events, unknown price null, replay dedup |
-| Live management smoke     | Secure/HttpOnly/SameSite cookies, account/project creation, key revocation, confirmed cleanup and logout passed         |
-| Deterministic seed        | Exactly 10,000 explicitly simulated operations in the separate demo project                                             |
+| Check                     | Evidence                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Fresh installation        | `bun install --frozen-lockfile` passed on a clean isolated dependency tree                                                            |
+| Workspace unit suite      | **103/103 passed in 3.44s** on the complete MVP; whole-workspace lint, strict typecheck and formatting also passed                    |
+| SDK unit suite            | 58/58 Vitest tests passed; result/error identity, bounds, retries, byte budgets, flush/shutdown races                                 |
+| Analytics unit suite      | 28/28 passed; percentiles, exact money/known subtotal, zero-fill, UTC windows and scope-bound UTF-8 cursors                           |
+| Analytics Worker/D1 suite | 23/23 passed after real migrations; auth/scope, P95, both pagination orders, filters, row cap and read-only demo                      |
+| Entire Worker/D1 suite    | **59/59 passed in 13.47s** against actual workerd/D1: auth, keys, analytics and timestamp pricing regressions                         |
+| Ingestion Worker/D1 suite | 16/16 passed; persistence, idempotency, fractional/UTC pricing windows, 50 events, rollback/revocation/rate limits                    |
+| Built OpenNext E2E        | **7/7 Playwright cases passed in 22.4s** against actual workerd: demo/mobile, management/SDK lifecycle and security                   |
+| Native Bun Next-dev E2E   | **7/7 Playwright cases passed in 49.9s** on Next16.3.8, including demo/mobile, real management/SDK and security                       |
+| Final workspace build     | `bun run build` passed: shared, SDK, database, Next and API Worker dry-run                                                            |
+| Live browser E2E          | **7/7 Playwright cases passed in 19.4s** on deployed HTTPS, including management/SDK/key rotation, login and security                 |
+| API source checks         | API typecheck and scoped analytics ESLint/Prettier passed                                                                             |
+| SDK package               | ESM/types build and independent Node/Bun consumer import/trace/shutdown passed; no private runtime workspace dependency               |
+| SDK benchmark             | Native Bun stub transport: 10,000 events, 200 batches, zero drops; not provider/network latency                                       |
+| Real SDK → Worker → D1    | Verified locally and deployed: original success/error preserved, two persisted events, unknown price null, replay dedup               |
+| Live management smoke     | Secure/HttpOnly/SameSite cookies, account/project creation, key revocation, confirmed cleanup and logout passed                       |
+| Deterministic seed        | Exactly 10,000 explicitly simulated operations in the separate demo project                                                           |
+| Published runtime CI      | [GitHub Actions run](https://github.com/Metricra-code/traceai/actions/runs/37831615087) passed on `3d3c184`, including both E2E modes |
 
 Built-workerd, native Bun Next-development and live-browser runs are green, as is the final workspace
 build. The final integration run includes the two additional fractional/UTC timestamp pricing
-regressions. Remote GitHub Actions evidence is the only remaining publication check; no pending
-test count is presented as a successful result.
+regressions. Published runtime revision `3d3c184` also passed the complete GitHub Actions pipeline,
+including both E2E modes, after the lifecycle-isolation fix below. Documentation follow-ups do not
+change the deployed runtime; consult the workflow badge for the latest branch-run state.
 
 Final review also reproduced a fixed-custom-range refresh bug: a backdated insert kept the total
 at two after Refresh. Scoped query invalidation fixes it; all three E2E modes now assert the same
@@ -46,7 +48,8 @@ The resulting stale RPC discovery explains why a fresh standalone workerd run co
 Each managed E2E invocation now gets a unique `WRANGLER_REGISTRY_PATH`, shared by its API/web children.
 No global registry deletion, added retries, weakened assertions or production fallback is used.
 The exact `CI=1` Next-dev → built-workerd sequence subsequently passed seven cases in each mode;
-the workerd run completed in 11.9s. Remote confirmation remains a separate gate.
+the workerd run completed in 11.9s. The [subsequent remote run](https://github.com/Metricra-code/traceai/actions/runs/37831615087)
+passed the full pipeline; its verify job completed in 2m26s.
 [Playwright process lifecycle](https://playwright.dev/docs/test-webserver).
 
 ## Deployment regression and compatibility pin

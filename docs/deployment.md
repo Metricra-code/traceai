@@ -54,6 +54,7 @@ Run lint/format/typecheck, unit/actual Worker+D1 integration, all builds and Pla
 - API version: `3bd26be5-4957-43e2-87c8-86d9a184ec35`; web version: `6a80bb0c-234d-4ff6-827a-289606d1fd9d`.
 - `bun run verify:deployment` passed against the actual Workers: Secure session cookie, project/key creation, real SDK success/error telemetry, D1 queries, unknown pricing, idempotent replay, revocation rejection, deletion/logout cleanup.
 - All seven Playwright flows passed against the live web/API, including anonymous demo, mobile overflow, owner isolation, CSRF, key rotation and the real SDK.
+- [Published runtime CI](https://github.com/Metricra-code/traceai/actions/runs/37831615087) passed unit/integration/build and both Next-dev/workerd E2E modes on `3d3c184`.
 - The first Next16.4 build/deployment failed at runtime on `preview-props.json`. Next16.3.8 pin fixes the upstream adapter incompatibility without patching node_modules; CI now executes built OpenNext in workerd. [Upstream issue/fix](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356).
 
 ```sh

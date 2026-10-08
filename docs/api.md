@@ -32,7 +32,8 @@ no session returns 401. Cookie mutations require exact `Origin === WEB_ORIGIN`. 
 seven days, use hashed-at-rest random tokens, and set HttpOnly/SameSite cookies (Secure in production).
 Keys use an independent random 256-bit secret and salt; lists never return the raw value or hash.
 Management is bounded to 100 owned projects and 20 active keys/project; exceeding these caps returns
-409 `resource_limit`. Key history returns the newest 100 records, with `historyLimit` in the response.
+409 `resource_limit`. Key history prioritizes every active key, then the newest revoked records,
+up to 100 total, with `historyLimit` in the response.
 Revoked older records remain in storage and can never authenticate ingestion.
 
 Passwords are hashed/verified using native scrypt in a **private SQLite-backed Durable Object**, not
@@ -75,6 +76,9 @@ repeated IDs in one batch; retries cannot replace original usage/model/pricing/m
 inserts roll back all rows if a later statement fails. Five-row chunks respect bind limits; a full batch
 uses bounded queries, not an N+1 pricing lookup. A fixed atomic per-key limit allows 120 requests/UTC minute;
 429 returns Retry-After. Invalid authenticated requests count toward the limit.
+
+UTC timestamps are normalized to fixed milliseconds before deduplication, pricing and storage,
+so indexed time comparisons and effective-price boundaries share the same precision.
 
 Pricing matches exact provider/model and effective versions, never simulated records. Both usage counts
 must be present (including explicit zero). Missing/unknown/unsafe pricing is null. Calculation rounds

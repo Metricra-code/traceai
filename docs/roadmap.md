@@ -29,14 +29,14 @@ The original product specification remains unchanged in [product-spec.md](produc
 - [x] All seven live-browser journeys passed on deployed HTTPS, including management/SDK and security.
 - [x] Latest native Bun Next16.3.8 development E2E: seven journeys passed; final workspace build passed.
 - [x] Fractional/UTC timestamp pricing regressions verified in the final 59-case Worker/D1 suite.
-- [ ] GitHub Actions evidence for the published revision.
+- [x] [GitHub Actions](https://github.com/Metricra-code/traceai/actions/runs/37831615087) passed for published runtime revision `3d3c184`, including both E2E modes.
 - [ ] Sustained traffic/CPU/quota observations, cold/page-load measurements and retention policy.
 
 Next is pinned to 16.3.8 while the adapter's [16.4 manifest fix](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356)
 remains unreleased. The first frontend publication exposed a dynamic-route failure despite a green build;
 actual workerd E2E and live service-binding checks caught and verified the fix without dependency-source patches.
 
-These are explicit release gates, not silently omitted features. See [verification](verification.md) for current
+Sustained operational observations remain follow-up work, not an enterprise SLA claim. See [verification](verification.md) for current
 sample/environment evidence and [deployment](deployment.md) for manual configuration/rollback.
 
 ## After v1 acceptance
