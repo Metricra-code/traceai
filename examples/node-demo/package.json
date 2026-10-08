@@ -1,0 +1,14 @@
+{
+  "name": "@traceai/node-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "bun src/index.ts",
+    "benchmark": "bun src/benchmark.ts"
+  },
+  "dependencies": {
+    "@traceai/sdk": "workspace:*"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "name": "traceai",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "bun@1.4.0",
+  "engines": {
+    "node": ">=22",
+    "bun": ">=1.4.0"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"bun run --filter @traceai/api dev\" \"bun run --filter @traceai/web dev\"",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit && bun run --filter \"@traceai/*\" typecheck",
+    "test": "vitest run",
+    "test:integration": "bun run --filter @traceai/api test:integration",
+    "test:e2e": "playwright test",
+    "build": "bun run --filter \"@traceai/*\" build",
+    "db:migrate": "bun run --filter @traceai/api db:migrate",
+    "db:seed": "bun packages/database/src/seed.ts && bun scripts/seed-local.ts",
+    "demo:node": "bun examples/node-demo/src/index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.0.0",
+    "eslint": "10.12.0",
+    "@eslint/js": "10.0.1",
+    "prettier": "^3.0.0",
+    "vitest": "4.1.11",
+    "@vitest/coverage-v8": "4.1.11",
+    "@playwright/test": "^1.55.0",
+    "tsup": "^8.5.0",
+    "concurrently": "^9.2.0",
+    "@types/node": "^22.0.0"
+  },
+  "type": "module",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "examples/*"
+  ],
+  "trustedDependencies": [
+    "esbuild",
+    "sharp",
+    "workerd"
+  ]
+}

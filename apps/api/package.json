@@ -1,0 +1,30 @@
+{
+  "name": "@traceai/api",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "bunx --no-install wrangler dev --port 8787",
+    "typecheck": "bunx --no-install tsc --noEmit",
+    "build": "bunx --no-install wrangler deploy --dry-run --outdir dist",
+    "db:migrate": "bunx --no-install wrangler d1 migrations apply traceai-db --local",
+    "db:seed": "bunx --no-install wrangler d1 execute traceai-db --local --file ../../packages/database/seed.sql",
+    "test:integration": "bunx --no-install vitest run --config vitest.integration.config.ts",
+    "deploy": "bunx --no-install wrangler deploy",
+    "db:bootstrap": "bunx --no-install wrangler d1 execute traceai-db --local --file ../../.local/bootstrap.sql",
+    "cf": "bunx --no-install wrangler",
+    "db:query": "bunx --no-install wrangler d1 execute traceai-db --local"
+  },
+  "dependencies": {
+    "@traceai/shared": "workspace:*",
+    "@traceai/database": "workspace:*",
+    "hono": "4.13.13",
+    "drizzle-orm": "0.45.4",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261008.1",
+    "wrangler": "4.148.0",
+    "@cloudflare/vitest-plugin": "1.3.7"
+  }
+}

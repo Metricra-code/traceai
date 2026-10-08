@@ -1,0 +1,17 @@
+PRAGMA foreign_keys = ON;
+CREATE TABLE users (id TEXT NOT NULL PRIMARY KEY, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE sessions (id TEXT NOT NULL PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE INDEX sessions_expiry ON sessions(expires_at);
+CREATE TABLE projects (id TEXT NOT NULL PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE INDEX projects_owner ON projects(owner_id);
+CREATE TABLE api_keys (id TEXT NOT NULL PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE, key_hash TEXT NOT NULL, key_salt TEXT NOT NULL, key_prefix TEXT NOT NULL, created_at TEXT NOT NULL, last_used_at TEXT, revoked_at TEXT);
+CREATE INDEX api_keys_project ON api_keys(project_id);
+CREATE TABLE model_pricing (id TEXT NOT NULL PRIMARY KEY, provider TEXT NOT NULL, model TEXT NOT NULL, input_nano_usd_per_million TEXT NOT NULL, output_nano_usd_per_million TEXT NOT NULL, currency TEXT NOT NULL DEFAULT 'USD', effective_from TEXT NOT NULL, effective_to TEXT, source_url TEXT NOT NULL, simulated INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX pricing_lookup ON model_pricing(provider, model, effective_from);
+CREATE TABLE traces (id TEXT NOT NULL PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE, trace_id TEXT NOT NULL, parent_span_id TEXT, name TEXT NOT NULL, provider TEXT NOT NULL, model TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('success', 'error')), started_at TEXT NOT NULL, ended_at TEXT NOT NULL, duration_ms REAL NOT NULL CHECK(duration_ms >= 0), input_tokens INTEGER CHECK(input_tokens >= 0), output_tokens INTEGER CHECK(output_tokens >= 0), estimated_cost_nano_usd INTEGER, pricing_version TEXT REFERENCES model_pricing(id), error_type TEXT, error_message TEXT, metadata_json TEXT NOT NULL DEFAULT '{}', created_at TEXT NOT NULL);
+CREATE UNIQUE INDEX traces_project_trace ON traces(project_id, trace_id);
+CREATE INDEX traces_project_time ON traces(project_id, started_at, trace_id);
+CREATE INDEX traces_project_status_time ON traces(project_id, status, started_at);
+CREATE INDEX traces_project_model_time ON traces(project_id, provider, model, started_at);
+CREATE TABLE rate_limits (key TEXT NOT NULL PRIMARY KEY, count INTEGER NOT NULL, expires_at INTEGER NOT NULL);
+CREATE INDEX rate_limits_expiry ON rate_limits(expires_at);
