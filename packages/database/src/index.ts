@@ -61,6 +61,8 @@ export const modelPricing = sqliteTable(
     effectiveTo: text('effective_to'),
     sourceUrl: text('source_url').notNull(),
     simulated: integer('simulated', { mode: 'boolean' }).notNull().default(false),
+    verifiedAt: text('verified_at'),
+    billingBasis: text('billing_basis'),
   },
   (table) => [index('pricing_lookup').on(table.provider, table.model, table.effectiveFrom)],
 );
@@ -88,6 +90,7 @@ export const traces = sqliteTable(
       enum: ['timeout', 'rate_limit', 'network', 'application', 'unknown'],
     }),
     errorMessage: text('error_message'),
+    errorCapturePolicy: text('error_capture_policy'),
     metadataJson: text('metadata_json').notNull().default('{}'),
     createdAt: text('created_at').notNull(),
   },

@@ -1,5 +1,8 @@
 import {
   metadataSchema,
+  sanitizeErrorSummary,
+  ERROR_CAPTURE_POLICY,
+  pricingProvenanceSchema,
   type Project,
   type QueryFilters,
   type Trace,
@@ -26,6 +29,7 @@ interface TraceRow extends AnalyticsRow {
   endedAt: string;
   pricingVersion: string | null;
   errorType: Trace['errorType'] | null;
+  errorSummary: string | null;
   metadataJson: string;
   createdAt: string;
 }
@@ -76,10 +80,16 @@ const traceProjection = `project_id AS projectId, trace_id AS traceId, name, pro
   started_at AS startedAt, ended_at AS endedAt, duration_ms AS durationMs,
   input_tokens AS inputTokens, output_tokens AS outputTokens,
   CAST(estimated_cost_nano_usd AS TEXT) AS estimatedCostNanoUsd, pricing_version AS pricingVersion,
-  error_type AS errorType, metadata_json AS metadataJson, created_at AS createdAt`;
+  error_type AS errorType,
+  CASE WHEN error_capture_policy = '${ERROR_CAPTURE_POLICY}' THEN error_message ELSE NULL END AS errorSummary,
+  metadata_json AS metadataJson, created_at AS createdAt`;
 
 function mapTrace(row: TraceRow): Trace {
   const metadata: TraceMetadata = metadataSchema.parse(JSON.parse(row.metadataJson));
+  const errorSummary =
+    row.status === 'error' && row.errorSummary !== null
+      ? sanitizeErrorSummary(row.errorSummary)
+      : undefined;
   return {
     projectId: row.projectId,
     traceId: row.traceId,
@@ -95,6 +105,7 @@ function mapTrace(row: TraceRow): Trace {
     estimatedCostNanoUsd: row.estimatedCostNanoUsd,
     pricingVersion: row.pricingVersion,
     ...(row.errorType === null ? {} : { errorType: row.errorType }),
+    ...(errorSummary === undefined ? {} : { errorSummary }),
     metadata,
     createdAt: row.createdAt,
   };
@@ -130,11 +141,27 @@ export async function readTrace(
   traceId: string,
 ): Promise<Trace | undefined> {
   const row = await database
-    .prepare(`SELECT ${traceProjection} FROM traces WHERE project_id = ? AND trace_id = ? LIMIT 1`)
+    .prepare(
+      `SELECT ${traceProjection}, (
+        SELECT json_object('version', p.id, 'provider', p.provider, 'model', p.model,
+          'currency', p.currency, 'inputNanoUsdPerMillion', p.input_nano_usd_per_million,
+          'outputNanoUsdPerMillion', p.output_nano_usd_per_million,
+          'effectiveFrom', p.effective_from, 'effectiveTo', p.effective_to,
+          'sourceUrl', p.source_url, 'simulated', json(CASE WHEN p.simulated = 1 THEN 'true' ELSE 'false' END),
+          'verifiedAt', p.verified_at, 'billingBasis', p.billing_basis)
+        FROM model_pricing p WHERE p.id = traces.pricing_version LIMIT 1
+      ) AS pricingJson FROM traces WHERE project_id = ? AND trace_id = ? LIMIT 1`,
+    )
     .bind(projectId, traceId)
-    .first<TraceRow>();
-  // Raw error_message is never selected or returned, including legacy database rows.
-  return row === null ? undefined : mapTrace(row);
+    .first<TraceRow & { pricingJson: string | null }>();
+  // Legacy messages never enter the projection; only marked explicit summaries are sanitized again.
+  if (row === null) return undefined;
+  return {
+    ...mapTrace(row),
+    ...(row.pricingJson === null
+      ? {}
+      : { pricing: pricingProvenanceSchema.parse(JSON.parse(row.pricingJson)) }),
+  };
 }
 
 export async function readDemoProject(database: D1Database): Promise<DemoRow | undefined> {

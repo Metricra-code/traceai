@@ -15,6 +15,7 @@
     "@fontsource-variable/manrope": "^5.2.0",
     "@fontsource/azeret-mono": "^5.2.0",
     "@hookform/resolvers": "^5.0.0",
+    "@radix-ui/react-dropdown-menu": "^2.1.25",
     "@tanstack/react-query": "^5.90.0",
     "@tanstack/react-table": "^8.21.0",
     "@traceai/shared": "workspace:*",

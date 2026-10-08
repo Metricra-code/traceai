@@ -66,7 +66,9 @@ async function addPrice(
     inputRate?: string;
   } = {},
 ): Promise<void> {
-  await env.DB.prepare('INSERT INTO model_pricing VALUES (?,?,?,?,?,?,?,?,?,?)')
+  await env.DB.prepare(
+    'INSERT INTO model_pricing (id,provider,model,input_nano_usd_per_million,output_nano_usd_per_million,currency,effective_from,effective_to,source_url,simulated) VALUES (?,?,?,?,?,?,?,?,?,?)',
+  )
     .bind(
       id,
       event.provider,

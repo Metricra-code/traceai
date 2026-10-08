@@ -22,10 +22,21 @@ import {
   Moon,
   LogOut,
   ArrowUpRight,
+  UserRound,
+  ChevronDown,
 } from 'lucide-react';
 import type { Project } from '@traceai/shared';
 import { api } from '@/lib/api';
 import { Failure, Loading } from './ui';
+import { useTheme } from './providers';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 interface WindowContext {
   project: Project;
   apiBase: string;
@@ -54,8 +65,13 @@ export function Shell({
   const router = useRouter();
   const cache = useQueryClient();
   const demo = basePath === '/demo';
-  const [light, setLight] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const [logoutError, setLogoutError] = useState('');
+  const session = useQuery({
+    queryKey: ['session'],
+    queryFn: () => api<{ user: { id: string; email: string } }>('auth/session'),
+    enabled: !demo,
+  });
   const projects = useQuery({
     queryKey: ['projects'],
     queryFn: () => api<{ items: Project[] }>('projects'),
@@ -80,11 +96,6 @@ export function Shell({
     } catch {
       setLogoutError('Could not sign out. Please try again.');
     }
-  }
-  function toggleTheme() {
-    const next = !light;
-    setLight(next);
-    document.documentElement.dataset.theme = next ? 'light' : 'dark';
   }
   return (
     <div className="app-shell">
@@ -115,6 +126,14 @@ export function Shell({
                 </Link>
               ),
           )}
+          <a
+            className="mobile-documentation"
+            href="https://github.com/Metricra-code/traceai/tree/main/docs"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <BookOpen size={17} /> Documentation <ArrowUpRight size={13} />
+          </a>
         </nav>
         <div className="sidebar-bottom">
           <a
@@ -156,17 +175,67 @@ export function Shell({
             {demo && <span className="demo-label">DEMO</span>}
           </div>
           <div className="topbar-actions">
-            <button className="icon-button" aria-label="Toggle theme" onClick={toggleTheme}>
-              {light ? <Moon size={17} /> : <Sun size={17} />}
+            <button
+              className="icon-button"
+              aria-label="Toggle theme"
+              aria-pressed={theme === 'light'}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+              onClick={toggleTheme}
+            >
+              {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
             </button>
             {demo ? (
               <Link className="button small-button" href="/register">
                 Create workspace <ArrowUpRight size={14} />
               </Link>
+            ) : session.data ? (
+              <>
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <button aria-label="Account menu" className="account-trigger">
+                      <UserRound size={16} />
+                      <span>{session.data.user.email.split('@')[0]}</span>
+                      <ChevronDown size={13} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" aria-label="Account actions">
+                    <DropdownMenuLabel>
+                      <span className="muted small">SIGNED IN AS</span>
+                      <span className="account-email">{session.data.user.email}</span>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/projects">
+                        <Folder size={16} /> Projects
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a
+                        href="https://github.com/Metricra-code/traceai/tree/main/docs"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <BookOpen size={16} /> Documentation
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => void logout()}>
+                      <LogOut size={16} /> Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <button onClick={() => void logout()}>
+                  <LogOut size={15} /> Sign out
+                </button>
+              </>
+            ) : !session.isPending ? (
+              <Link className="button" href="/login">
+                Sign in
+              </Link>
             ) : (
-              <button onClick={() => void logout()}>
-                <LogOut size={15} /> Sign out
-              </button>
+              <span className="muted small" role="status">
+                Loading account…
+              </span>
             )}
           </div>
         </div>

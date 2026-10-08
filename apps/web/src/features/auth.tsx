@@ -9,7 +9,13 @@ import { credentialsSchema } from '@traceai/shared';
 import type { z } from 'zod';
 import { Activity, ArrowRight } from 'lucide-react';
 import { api } from '@/lib/api';
-export function AuthForm({ register = false }: { register?: boolean }) {
+export function AuthForm({
+  register = false,
+  returnTo = '/projects',
+}: {
+  register?: boolean;
+  returnTo?: string;
+}) {
   const router = useRouter();
   const cache = useQueryClient();
   const [error, setError] = useState('');
@@ -26,7 +32,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         body: JSON.stringify(values),
       });
       cache.clear();
-      router.push('/projects');
+      router.push(returnTo);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not sign in. Try again.');
     }
@@ -40,10 +46,10 @@ export function AuthForm({ register = false }: { register?: boolean }) {
         </Link>
         <div>
           <p className="eyebrow">KNOW WHAT YOUR AI IS DOING</p>
-          <h1>
+          <h2>
             Every operation.
             <br />A clearer picture.
-          </h1>
+          </h2>
           <p>
             Latency, usage, failures. The signals you need, without collecting the content you
             don’t.
@@ -57,7 +63,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       <section className="auth-form-section">
         <div className="auth-form">
           <p className="eyebrow">YOUR WORKSPACE</p>
-          <h2>{register ? 'Create an account' : 'Welcome back'}</h2>
+          <h1>{register ? 'Create an account' : 'Welcome back'}</h1>
           <p className="muted">
             {register
               ? 'Start observing your application. No provider key required.'

@@ -93,10 +93,18 @@ application operation ──await──► original result / original error
 - Error categories are only `timeout`, `rate_limit`, `network`, `application`, `unknown`.
   Mapping is intentionally conservative; categories do not imply provider-specific instrumentation.
 - Custom metadata is your explicit privacy responsibility. Do not send personal information or secrets.
+- `TraceOptions.errorSummary(error)` is a **failure-only opt-in**, never automatic `.message` capture.
+  It must synchronously return a deliberately safe string (or `undefined`), at most 1,000 characters
+  and 4 KiB UTF-8. Known token/auth/email/URL-credential patterns are redacted; arbitrary PII is
+  **not** guaranteed to be detected. Prefer a controlled category summary, not `error.message`.
+  Invalid/oversized values, hostile getters, throws and mistakenly async rejections are ignored.
+  The API stores explicit summaries under `explicit-summary-v1`; historical/category-only errors stay summary-free.
 
 There is synchronous capture/validation overhead and batch serialization uses the event loop;
 “non-blocking” means no operation awaits telemetry **network delivery**, not zero CPU overhead.
-No provider adapters or OpenTelemetry integration are shipped in v1.
+The core SDK has no provider SDK or OpenTelemetry dependency. The optional
+[`@traceai/opentelemetry`](opentelemetry.md) package adapts already-ended GenAI spans;
+automatic provider instrumentation and distributed trace trees remain outside scope.
 
 ## Memory, batches and retry policy
 
@@ -134,7 +142,8 @@ cannot keep `flush()` stuck on its request indefinitely.
 - `shutdown()` is idempotent. It stops the background interval and new telemetry immediately,
   waits for all operations already registered with the client, then drains their completed events.
   A trace started after closure still executes normally but has an inactive span and produces `client_closed`.
-- Shutdown handles an active operation completing while an older flush is finishing.
+- Active operation tracking uses a counter and one shutdown barrier, not a cloned collection per callback.
+  Shutdown handles an active operation completing while an older flush is finishing.
 - Shutdown does not cancel application operations. An operation that never settles can keep shutdown waiting;
   set deadlines/AbortSignals on your own AI calls. **Do not await shutdown from inside a traced callback**.
 - Background intervals are unreferenced on compatible runtimes (Node and Bun) and do not keep the process alive.
@@ -144,31 +153,65 @@ cannot keep `flush()` stuck on its request indefinitely.
   In a Worker request use a lifecycle extension such as `ctx.waitUntil(client.shutdown())` after the operation,
   with a request-scoped client; runtime lifetime limits still apply. Do not share unbounded request lifecycle state.
 
-Diagnostic codes: `invalid_event`, `invalid_metadata`, `invalid_usage`, `queue_full`,
+Diagnostic codes: `invalid_event`, `invalid_metadata`, `invalid_usage`, `invalid_error_summary`, `queue_full`,
 `delivery_retry`, `delivery_failed`, `client_closed`.
 Diagnostic callbacks should be lightweight. Synchronous throws and async promise rejections are swallowed.
 The SDK has no built-in console logger and never supplies an endpoint, API key, event body or original error to observers.
+
+## Completed-event adapters and delivery receipts
+
+`record(event: CompletedTrace): Promise<DeliveryResult>` is for **already-ended server-side operations**,
+not a second wrapper around a fake no-op. Supply the original stable ID, UTC timestamps, duration,
+labels and explicit usage. It validates the strict shared event contract and snapshots values.
+Raw extra fields such as `errorMessage` are rejected; explicit `errorSummary` strings are sanitized.
+
+```ts
+const receipt = traceai.record(completedEvent);
+await traceai.flush(); // Initiate a drain before waiting for a short-lived process's receipt.
+const delivery = await receipt;
+// { status: 'delivered' } OR { status: 'dropped', reason: ... }
+```
+
+`delivered` means the batch received an **HTTP 2xx acknowledgment**, not merely queued.
+The TraceAI API acknowledges with HTTP 202 after ingestion; an arbitrary custom transport can return
+2xx without persisting anything. Verify API storage separately when proving an end-to-end deployment.
+Drop reasons: `disabled`, `client_closed`, `invalid_event`, `queue_full`, `delivery_failed`.
+Receipts consume the same bounded queued/in-flight capacity, settle on permanent/exhausted failure,
+and never turn best-effort `flush()` into a falsely successful acknowledgment.
+Normal `trace()` intentionally does not await a receipt.
+
+Public adapter helpers: `snapshotTraceMetadata(unknown)` accepts only valid plain scalar records and
+returns a detached snapshot (or `undefined`); `sanitizeErrorSummary(string)` returns a bounded,
+known-pattern-redacted summary (or `undefined`). Neither guarantees all-PII detection.
 
 ## Packaging and verification
 
 The public package exports only `dist/index.js` and `dist/index.d.ts`.
 `tsup` bundles the private shared schema implementation, leaving **Zod as the only runtime dependency**.
-No React, Next.js, provider SDK or workspace package is needed by a consumer.
+No React, Next.js, provider SDK or private workspace package is needed by a consumer.
+The public SDK and optional adapter include the MIT license. **Neither has been published to npm**;
+use workspace source/builds or locally packed tarballs until publication is explicitly authorized.
 The Node example resolves source through TypeScript paths for pre-build checks and uses built output at runtime.
 
 ```sh
 bun run --filter @traceai/sdk typecheck
 bun run --filter @traceai/node-demo typecheck
-bun run test packages/sdk/src/index.test.ts
-bun run test packages/sdk/src/index.test.ts --coverage --coverage.include='packages/sdk/src/**/*.ts'
+bun run test packages/sdk/src/index.test.ts packages/sdk/src/extensions.test.ts
+bun run test packages/sdk/src/index.test.ts packages/sdk/src/extensions.test.ts --coverage --coverage.include='packages/sdk/src/**/*.ts'
 bun run --filter @traceai/sdk build
-(cd packages/sdk && bun pm pack --destination /tmp/traceai-sdk-pack)
+bun run --filter @traceai/opentelemetry build
+bun run test:packages
 ```
 
 The tests use controlled promises/fake clocks/transports, not real AI/network services. Coverage includes
 result/error identity, explicit usage, disabled client, metadata bounds, hostile getters/observers,
 monotonic duration, bounded queue including in-flight events, byte budgets, flush concurrency,
-shutdown races, retry jitter, Retry-After, permanent errors and ignored AbortSignals.
+shutdown races, retry jitter, Retry-After, permanent errors, ignored AbortSignals, explicit summary
+redaction, delivery receipts, and 10,000 simultaneously active callbacks with a bounded 50-event queue.
+`test:packages` packs with Bun into ignored `.local/packages/`, installs an external temporary consumer,
+checks strict public types and MIT files, then runs actual SDK + real OTel provider imports on Bun and
+Node 22. The adapter's public SDK dependency is overridden to the local SDK tarball because no registry
+release exists. No private workspace runtime dependency is installed; no package is published.
 
 ## Repeatable overhead benchmark
 
@@ -177,7 +220,24 @@ bun run --filter @traceai/sdk build
 bun examples/node-demo/src/benchmark.ts
 ```
 
-The benchmark warms up, compares plain async operations against 10,000 wrapped no-op operations,
-uses a stub accepting transport, checks loss counters, and reports elapsed/sample P95 and batch counts.
-It does **not** measure network/AI provider latency. Record runtime version, hardware, sample count and
-five repeated runs when reporting results. Performance targets are goals, not guarantees.
+Both paths get 1,000 warm-up operations. Each measured path runs 10,000 operations, five repeats,
+at concurrency 1 / 50 / 1,000. A stub transport acknowledges batches; between concurrent waves the
+bounded queue is drained (that explicit drain time is excluded). Output includes runtime, hardware,
+sample count, batch/delivery/loss counters, elapsed mean and sample P95. Concurrent sample P95
+includes wave scheduling delay, **not** only one call's CPU time. This is not a network/provider
+latency, sustained ingestion capacity or production SLA benchmark.
+
+Observed 2026-10-08T19:57:02Z (Taipei Oct 9), Bun 1.4.0, Apple M2 arm64/macOS,
+8 logical CPUs, 16 GiB RAM; median across five repeats:
+
+| Concurrency | Added mean per operation | Wrapped sample P95 | Each repeat                                    |
+| ----------- | ------------------------ | ------------------ | ---------------------------------------------- |
+| 1           | 0.02153 ms               | 0.01496 ms         | 10,000 acknowledgments / 200 batches / 0 drops |
+| 50          | 0.02047 ms               | 0.63483 ms         | 10,000 acknowledgments / 200 batches / 0 drops |
+| 1,000       | 0.01085 ms               | 13.65900 ms        | 10,000 acknowledgments / 200 batches / 0 drops |
+
+Mean includes chunk setup, bookkeeping and serialization while sample P95 measures each callback's
+awaited span; they are different measurements and should not be compared as one distribution.
+This run overlapped other local browser validation; machine load/JIT/GC affect results.
+At concurrency1,000 the sample P95 is wave scheduling latency, not a per-call CPU-overhead/SLA pass.
+Rerun rather than treating these numbers as guarantees or cherry-picking a quieter result.

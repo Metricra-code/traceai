@@ -68,8 +68,15 @@ See [architecture](architecture.md) and [deployment](deployment.md) for runtime 
 
 Success is HTTP 202, `{ "accepted": 1, "duplicates": 0 }`. Entire batches validate atomically:
 1–50 events, 256 KiB streamed UTF-8 body, 8 KiB scalar metadata/event, valid UTC timestamps,
-nonnegative bounded duration/token counts and category-only errors. Compressed bodies and extra fields,
-including raw error messages or caller-supplied project IDs, are rejected.
+nonnegative bounded duration/token counts. Compressed bodies and extra fields, including raw
+`errorMessage` or caller-supplied project IDs, are rejected. Errors are category-only by default.
+
+An **explicit opt-in** `errorSummary` is permitted only on `status: "error"`: at most 1,000 characters
+and 4 KiB UTF-8. The API redacts known auth/token/API-key/email/URL-credential patterns, drops blank or
+out-of-budget sanitized results, and stores only the resulting text with internal policy
+`explicit-summary-v1`. It never automatically inspects `exception.message`. Sanitization is best-effort,
+not a guarantee against arbitrary PII: applications must supply deliberately safe context, not prompts,
+responses, stacks or credentials. Summaries on successful operations reject the entire batch.
 
 Project scope comes only from the authenticated key. First `(project_id,trace_id)` wins, including
 repeated IDs in one batch; retries cannot replace original usage/model/pricing/metadata. D1 transactional
@@ -78,11 +85,14 @@ uses bounded queries, not an N+1 pricing lookup. A fixed atomic per-key limit al
 429 returns Retry-After. Invalid authenticated requests count toward the limit.
 
 UTC timestamps are normalized to fixed milliseconds before deduplication, pricing and storage,
-so indexed time comparisons and effective-price boundaries share the same precision.
+so indexed time comparisons and effective-price boundaries share the same precision. Ordering is
+validated at the supplied fractional precision first; reversed sub-millisecond intervals are rejected.
 
 Pricing matches exact provider/model and effective versions, never simulated records. Both usage counts
 must be present (including explicit zero). Missing/unknown/unsafe pricing is null. Calculation rounds
 once to integer nanodollars; historical version identity is retained. No real prices are fabricated.
+The two checked-in sourced real-price snapshots and explicit operator import commands are documented
+in [pricing](pricing.md). Fresh deployments must import them after migration; demo seed is not a real registry.
 
 ## Analytics and public demo
 
@@ -137,7 +147,10 @@ both cost fields `"0"`.
 Pagination orders by `(started_at, trace_id)` in the selected direction, handling timestamp ties.
 Cursors bind project/window/filters/sort; changing filters must reset pagination. They are not credentials
 or snapshot-isolation guarantees when late ingestion changes a window. Trace APIs never select legacy
-raw `error_message`; only sanitized categories and explicit metadata are returned.
+raw `error_message`. Only marked opt-in summaries are selected and sanitized again, returned as
+optional `errorSummary` alongside category and explicit metadata. Trace detail may additionally include
+`pricing` provenance: version/provider/model/currency/rates/effective window/source/simulated/verifiedAt/
+billingBasis. No new query endpoint or floating-point money is required.
 
 ## Errors, privacy and local integration
 
@@ -151,3 +164,12 @@ Use dashboard registration/project/key generation for the normal local SDK path.
 `examples/local-project/create.ts --local-only` bootstrap is an ingestion fixture with a disabled owner,
 not a login account. Its `.local` files are ignored and permission-restricted; never run its SQL remotely.
 See [SDK](sdk.md) for native-Bun examples and [verification](verification.md) for actual test evidence.
+
+## Bounded scheduled maintenance
+
+The API Worker runs `17 * * * *` in UTC. Each invocation deletes at most 250 expired sessions and
+250 expired rate-limit counters using their expiry indexes. Active state is preserved; no users,
+projects, API keys, model-pricing versions or traces are deleted. Backlogs are drained over later
+invocations rather than a large unbounded DELETE. Logs contain only event/category and deletion counts,
+never token values, counter identities, bodies or exception strings. This is auth-state cleanup, **not
+trace retention/archival**; see [operations](operations.md) for the operator quota and retention policy.

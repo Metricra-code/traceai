@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { Copy, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import { ApiError } from '@/lib/api';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 export function Loading() {
   return (
     <div className="loading" role="status" aria-label="Loading data">
@@ -13,6 +14,7 @@ export function Loading() {
   );
 }
 export function Failure({ error, retry }: { error: Error; retry?: () => void }) {
+  const pathname = usePathname();
   return (
     <section className="notice error" role="alert">
       <AlertCircle size={18} />
@@ -22,9 +24,15 @@ export function Failure({ error, retry }: { error: Error; retry?: () => void }) 
             ? 'Sign in to continue'
             : 'Could not load this view'}
         </h2>
-        <p>{error.message}</p>
+        <p>
+          {error instanceof ApiError && error.status === 401
+            ? 'Your session may have expired. Sign in to access your projects; your data remains private.'
+            : error.message}
+        </p>
         {error instanceof ApiError && error.status === 401 ? (
-          <Link href="/login">Sign in →</Link>
+          <Link href={`/login?returnTo=${encodeURIComponent(pathname)}`}>
+            Sign in to continue →
+          </Link>
         ) : (
           retry && (
             <button onClick={retry}>

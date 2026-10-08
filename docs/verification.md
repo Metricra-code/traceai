@@ -1,73 +1,150 @@
-# Verification evidence
+# Full-product verification evidence
 
-Evidence recorded on **2026-10-09** with Bun 1.4.0, Node 22 toolchain and actual workerd/D1.
-Local checks, live deployment and remote CI are distinct; no unrun check is marked passed.
+Recorded **2026-10-09 Taipei** with Bun **1.4.0**, Node **22.22.0**, actual Cloudflare
+workerd/D1 and Chromium **156.0.8078.4**. This verifies the full supplied specification
+plus the optional GenAI OpenTelemetry exporter, not just the earlier baseline MVP.
+Local checks, live runtime, measurements and remote CI are distinct kinds of evidence.
 
-## Verified evidence
+## Current verified release
 
-| Check                     | Evidence                                                                                                                              |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Fresh installation        | `bun install --frozen-lockfile` passed on a clean isolated dependency tree                                                            |
-| Workspace unit suite      | **103/103 passed in 3.44s** on the complete MVP; whole-workspace lint, strict typecheck and formatting also passed                    |
-| SDK unit suite            | 58/58 Vitest tests passed; result/error identity, bounds, retries, byte budgets, flush/shutdown races                                 |
-| Analytics unit suite      | 28/28 passed; percentiles, exact money/known subtotal, zero-fill, UTC windows and scope-bound UTF-8 cursors                           |
-| Analytics Worker/D1 suite | 23/23 passed after real migrations; auth/scope, P95, both pagination orders, filters, row cap and read-only demo                      |
-| Entire Worker/D1 suite    | **59/59 passed in 13.47s** against actual workerd/D1: auth, keys, analytics and timestamp pricing regressions                         |
-| Ingestion Worker/D1 suite | 16/16 passed; persistence, idempotency, fractional/UTC pricing windows, 50 events, rollback/revocation/rate limits                    |
-| Built OpenNext E2E        | **7/7 Playwright cases passed in 22.4s** against actual workerd: demo/mobile, management/SDK lifecycle and security                   |
-| Native Bun Next-dev E2E   | **7/7 Playwright cases passed in 49.9s** on Next16.3.8, including demo/mobile, real management/SDK and security                       |
-| Final workspace build     | `bun run build` passed: shared, SDK, database, Next and API Worker dry-run                                                            |
-| Live browser E2E          | **7/7 Playwright cases passed in 19.4s** on deployed HTTPS, including management/SDK/key rotation, login and security                 |
-| API source checks         | API typecheck and scoped analytics ESLint/Prettier passed                                                                             |
-| SDK package               | ESM/types build and independent Node/Bun consumer import/trace/shutdown passed; no private runtime workspace dependency               |
-| SDK benchmark             | Native Bun stub transport: 10,000 events, 200 batches, zero drops; not provider/network latency                                       |
-| Real SDK → Worker → D1    | Verified locally and deployed: original success/error preserved, two persisted events, unknown price null, replay dedup               |
-| Live management smoke     | Secure/HttpOnly/SameSite cookies, account/project creation, key revocation, confirmed cleanup and logout passed                       |
-| Deterministic seed        | Exactly 10,000 explicitly simulated operations in the separate demo project                                                           |
-| Published runtime CI      | [GitHub Actions run](https://github.com/Metricra-code/traceai/actions/runs/37831615087) passed on `3d3c184`, including both E2E modes |
+| Check                               | Actual result                                                                                                                                                |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Frozen installation                 | `bun install --frozen-lockfile` passed; 655 installs / 856 packages, no lock changes                                                                         |
+| Format / lint / strict TypeScript   | Whole-workspace checks passed; root scripts/E2E and all eight workspace typecheck commands included                                                          |
+| Unit tests                          | **168/168**, 14 files, **2.16s**; SDK 72 + real OTel 22, analytics/money/contracts/sanitizer/registry and migration compatibility                            |
+| Actual Worker/D1 integration        | **73/73**, five files, **9.91s**; real migrations, auth/tenant/key/ingestion/analytics/pricing/cleanup/rollback                                              |
+| Workspace production build          | SDK/shared/database declarations, optional exporter, Next and API Worker dry-run passed                                                                      |
+| OpenNext build                      | Next16.3.8 / OpenNext1.20.9 compiled and bundled successfully; no node_modules patch                                                                         |
+| Isolated public-package consumers   | Bun1.4.0 and Node22.22.0 runtime, strict public types with skipLibCheck=false, licenses/README and no private workspace runtime reference passed             |
+| Native Bun Next E2E                 | **17/17**, **1.6m**, with CI=1 and no retries                                                                                                                |
+| Built OpenNext / actual workerd E2E | **17/17**, **42.2s**, after the native suite, with an isolated registry namespace                                                                            |
+| Live HTTPS E2E                      | **17/17**, **55.8s**, against the deployed web/API                                                                                                           |
+| Real SDK + OTel → Worker → D1       | Three stored operations; original result/error identity, genuine span IDs, safe summary, priced subtotal, dedup/revocation/cleanup passed                    |
+| Remote migration / registry         | Reviewed additive `0002` applied; columns, all three guards and migration record queried; two officially sourced snapshots explicitly imported and read back |
+| Demo / screenshot                   | Existing 10,000-row simulated demo retained without remote reseeding; current loaded 30-day dashboard screenshot captured                                    |
+| Secret / scope review               | Tracked/new source, static bundles and public tarball contents reviewed; no real credentials, broad permissions or raw-error default capture found           |
+| Published-source GitHub Actions     | **Pending publication/run for this expanded release.** Earlier green runs are not substituted for this gate                                                  |
 
-Built-workerd, native Bun Next-development and live-browser runs are green, as is the final workspace
-build. The final integration run includes the two additional fractional/UTC timestamp pricing
-regressions. Published runtime revision `3d3c184` also passed the complete GitHub Actions pipeline,
-including both E2E modes, after the lifecycle-isolation fix below. Documentation follow-ups do not
-change the deployed runtime; consult the workflow badge for the latest branch-run state.
+The runtime versions are API **`8171f54a-127c-4982-b378-161868735bcc`** and web
+**`1305011c-4719-4f64-99c6-a347dfbc6459`**. [Live demo](https://traceai-web.traceai-api.workers.dev/demo),
+[API health](https://traceai-api.traceai-api.workers.dev/health). The [acceptance ledger](acceptance.md)
+tracks all original requirements and the remaining publication gate; source implementation alone
+is not a completed release.
 
-Final review also reproduced a fixed-custom-range refresh bug: a backdated insert kept the total
-at two after Refresh. Scoped query invalidation fixes it; all three E2E modes now assert the same
-custom-query URL refetches and the count becomes three. Secure scrypt parameters remain unchanged;
-the four-KDF private-DO integration case has a focused 20s local test allowance, not a production SLA.
+## What the browser evidence actually covers
 
-## CI lifecycle isolation
+Original journeys still exercise real account registration/login → owned project → one-time key →
+actual SDK → persisted analytics → fixed-range refresh → trace detail → rotation/revocation → deletion.
+Security journeys reject missing/foreign Origin, unapproved BFF paths, demo writes, oversized bodies
+and another owner's resources, and render escaped long project text on mobile.
 
-The [first complete-MVP CI run](https://github.com/Metricra-code/traceai/actions/runs/37830070309)
-passed unit/integration/build and Next-dev E2E, but its following workerd suite received proxy 503s
-while direct API health stayed 200. Installed Miniflare refuses to replace another instance's fresh
-registry definition for 90 seconds; Playwright's default process-group SIGKILL bypasses cleanup.
-The resulting stale RPC discovery explains why a fresh standalone workerd run could pass.
+Expanded journeys compare Average/P95/chart/model/meter values with the **real API**; exercise each
+provider/model/status/time/exact-ID filter, both sort directions and cursor navigation; use keyboard
+menu/Escape, persisted theme across route/reload, project rename/selector, clipboard success and denied
+fallback; and inspect real explicit summaries, capture policy and simulated pricing provenance.
+Loaded-content overflow checks cover nine critical routes at **320/390/768/1440px**.
 
-Each managed E2E invocation now gets a unique `WRANGLER_REGISTRY_PATH`, shared by its API/web children.
-No global registry deletion, added retries, weakened assertions or production fallback is used.
-The exact `CI=1` Next-dev → built-workerd sequence subsequently passed seven cases in each mode;
-the workerd run completed in 11.9s. The [subsequent remote run](https://github.com/Metricra-code/traceai/actions/runs/37831615087)
-passed the full pipeline; its verify job completed in 2m26s.
-[Playwright process lifecycle](https://playwright.dev/docs/test-webserver).
+The aggregate422 fallback and loading/500/retry/429/network/empty presentation tests are **explicitly
+route-mocked UI scenarios**, not fabricated production responses. Their trace queries remain real where
+stated. Actual API row-cap/error/auth semantics are covered separately by Worker/D1 integration.
 
-## Deployment regression and compatibility pin
+Three axe cases scan public Overview/Models/Traces/detail in both themes, mobile login/register/401,
+and authenticated Projects/Settings, open account menu and one-time key. Private scans include 390/1440px,
+keyboard Tab between named code regions and actual ArrowRight scrolling. No rules are excluded or
+violations ignored. Automated AA-tag scans and these keyboard checks are **not complete WCAG
+certification**, human screen-reader testing or every imaginable viewport/content combination.
 
-The first published frontend failed dynamic requests with
-`Unexpected loadManifest(/.next/server/preview-props.json) call!` despite a successful OpenNext build.
-Next 16.4.0 moved preview data to a new manifest omitted by OpenNext 1.20.9. The installed adapter
-source and [upstream fix PR1356](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356) agree
-on this cause. Next is now pinned to **16.3.8**, the latest patched 16.3 release; no dependency-source
-patch or empty-manifest fallback is used.
+## Real deployed ingestion proof
 
-After the pin, the rebuilt OpenNext bundle passed all seven journeys in actual workerd, including
-dynamic pages and the same-origin API route. Deployed frontend/API HTTP returned 200, and
-`bun run verify:deployment` passed real session/project/SDK persistence/replay/revocation/cleanup checks.
-The regression is fixed without changing dependency source. All seven live-browser journeys also
-passed; remote CI evidence remains separate from HTTP/build/browser success.
+`bun run verify:deployment` created a disposable account/project/key with production Secure,
+HttpOnly/SameSite cookies. Two actual SDK operations retained their original success/error identities;
+a real `BasicTracerProvider` exported a third already-ended GenAI span with its actual trace/span IDs.
+No paid provider call occurred. Read-back checks confirmed:
 
-## Repeatable final checks
+- Three persisted operations, one failure; unknown grand-total price remains null.
+- One priced `openai/gpt-4.1-mini` operation, 1,000 input / 500 output tokens,
+  **1,200,000 nanoUSD ($0.0012)** known subtotal and official source/billing provenance.
+- Explicit summary `Mock operation failed; token=[redacted]`; no raw original error, private prompt,
+  raw span name or sample secret in responses.
+- Replay accepted with zero new rows / one duplicate; revoked key rejected 401.
+- Project/keys/traces deleted and session logged out. Test account records remain because account deletion
+  is deliberately not implemented. Never publish live Playwright traces containing disposable credentials.
+
+## Measured performance — current deployed release
+
+Safe aggregate output, timestamps, individual browser samples and all SDK repeats are retained in
+[performance.json](assets/performance.json). These are client-observed samples, **not an SLA**.
+Developer Taipei/macOS path, AppleM2/8 logical CPUs/16GiB; unthrottled network and CPU.
+
+### Dashboard initial usability
+
+At **2026-10-08T20:18:27.628Z**, 1440×1040 Chromium, default seven-day simulated view of the
+10,000-row demo. Usable means Total/P95 visible, six panels sized and five SVG charts rendered.
+
+| Browser cache                  | Samples | Individual usable times |    P50 | Nearest-rank P95 | Below 3s |
+| ------------------------------ | ------: | ----------------------- | -----: | ---------------: | -------- |
+| Fresh isolated contexts        |       3 | 2222 /1550 /1584ms      | 1584ms |           2222ms | 3/3      |
+| Same-context repeat HTTP visit |       3 | 1102 /1063 /953ms       | 1063ms |           1102ms | 3/3      |
+
+A fresh browser cache does not force a cold Cloudflare isolate. This includes network, hydration and
+API waterfall; no mobile-network/CPU throttling, universal geography or cold-edge claim is made.
+Browser readiness is not inferred from API timing.
+
+### Analytics API
+
+At **2026-10-08T20:19:30.846Z**, fixed 30-day window containing 10,000 persisted simulated traces,
+**20 timed samples per endpoint after one excluded warm-up**. Round-trip includes network and JSON;
+D1 served from APAC/NRT, not measured Worker CPU/provider latency.
+
+| Endpoint |   P50 |   P95 | Maximum |
+| -------- | ----: | ----: | ------: |
+| Overview | 200ms | 244ms |   306ms |
+| Metrics  | 187ms | 212ms |   281ms |
+| Models   | 178ms | 280ms |   301ms |
+| Traces   | 135ms | 145ms |   153ms |
+
+These observed P95s met the 500ms target for this bounded warm-client sample, not every production workload.
+
+A separate modest-traffic observation at **2026-10-08T20:20:29.258Z** rotated the four endpoints,
+30 sequential requests at 2-second start intervals over 58,208ms. **30/30 HTTP 200**, P50 190ms,
+P95 435ms, maximum 455ms; first/failed samples are not excluded. Approximately one minute is **not** a
+production soak, peak-concurrency/CPU test or sustained capacity guarantee.
+
+### SDK overhead
+
+The [SDK benchmark](sdk.md#repeatable-overhead-benchmark) reports equal 1,000-operation warm-up,
+10,000 operations × five repeats at concurrency 1/50/1,000. Each repeat acknowledged 10,000 events
+in 200 batches with zero drops. Stub transport/no provider/network: median added mean 0.02153 /
+0.02047 /0.01085ms; wrapped sample P95 0.01496 /0.63483 /13.659ms. Concurrent P95 includes wave
+scheduling delay, not one call's CPU overhead. The run overlapped local browser work; results are not
+cherry-picked or presented as production delivery capacity.
+
+## Regressions caught, not bypassed
+
+- **Remote D1 migration:** local SQLite accepted bare `SELECT CASE ... END` in trigger bodies, but remote
+  `/query` failed with `incomplete input: SQLITE_ERROR [7500]`. Read-only checks proved full rollback
+  before any new API deployment. Parenthesizing the four CASE expressions preserved every immutable/
+  overlap/abort guard. Two syntax/splitter regressions and actual D1 semantics passed; the corrected
+  migration then applied remotely, and columns/three guards/tracking were queried. No manual migration
+  marking, disabled guard, dependency patch or unexplained retry. [Cloudflare report](https://github.com/cloudflare/workers-sdk/issues/4727),
+  [workaround](https://github.com/cloudflare/workers-sdk/issues/4326).
+- **Accessibility:** real scans caught light simulated-tag contrast, inline links, hidden mobile auth heading,
+  unfocusable horizontally scrolling SDK code and modal-account-menu aria-hidden focus. Fixes changed
+  rendering/semantics; scans remained enabled. Account navigation uses Radix's genuine nonmodal menu.
+- **SDK concurrency / timing:** the copied active-operation Set caused O(N²) bookkeeping; a 10,000-active
+  callback regression now uses a counter/barrier. Exact fractional ordering rejects reversed 1ns intervals
+  before API millisecond canonicalization; fractional duration remains available.
+- **Refresh:** core E2E preserves the fixed custom-query URL and asserts a backdated insert changes the
+  total from 2 to 3 after Refresh, rather than only changing the date range to conceal stale cache.
+- **Next/OpenNext compatibility:** the earlier Next16.4 bundle built but failed dynamic requests with
+  `Unexpected loadManifest(/.next/server/preview-props.json) call!`. Next16.3.8/OpenNext1.20.9 is pinned;
+  built-workerd checks catch adapter issues that dev/build alone misses. [Upstream fix](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356).
+- **CI registry lifecycle:** force-killed dev servers left stale Miniflare service discovery. Each managed
+  E2E run now uses a unique `WRANGLER_REGISTRY_PATH` shared by its children; no global deletion or retries.
+  The earlier [baseline runtime CI](https://github.com/Metricra-code/traceai/actions/runs/37831615087)
+  confirmed the fix, but is not proof of the expanded source. [Playwright lifecycle](https://playwright.dev/docs/test-webserver).
+
+## Repeatable commands
 
 ```sh
 bun install --frozen-lockfile
@@ -77,47 +154,23 @@ bun run typecheck
 bun run test
 bun run test:integration
 bun run build
+bun run test:packages
 bun run db:migrate
+bun run db:pricing --local
 bun run db:seed
 bunx --no-install playwright install chromium
-bun run test:e2e
 bun run --filter @traceai/web build:cloudflare
-bun run test:e2e:workers
+CI=1 bun run test:e2e
+CI=1 bun run test:e2e:workers
 bun run verify:deployment
+TRACEAI_E2E_BASE_URL=https://traceai-web.traceai-api.workers.dev \
+TRACEAI_E2E_API_URL=https://traceai-api.traceai-api.workers.dev bun run test:e2e
+TRACEAI_DASHBOARD_URL=https://traceai-web.traceai-api.workers.dev/demo bun run benchmark:dashboard
+TRACEAI_ENDPOINT=https://traceai-api.traceai-api.workers.dev bun run benchmark:api
+TRACEAI_ENDPOINT=https://traceai-api.traceai-api.workers.dev bun run benchmark:sustained
 ```
 
-Playwright source includes public demo/filters/detail, mobile overflow, and the actual account → project →
-SDK ingestion → dashboard → rotate/revoke → rejected old-key flow. A test existing is not a green run;
-built-workerd, native Bun Next-development and live-browser suites are all green.
-Failed runs retain `playwright-report/` and `test-results/` artifacts.
-CI also runs `test:e2e:workers` against the built OpenNext Worker to catch dynamic-route/adapter
-regressions that `next dev` misses. It executes checks without deployment and uploads failure artifacts; consult its real GitHub Actions run,
-not this table, for remote evidence.
-
-## Deployment and measured performance
-
-- [Live demo](https://traceai-web.traceai-api.workers.dev/demo)
-- [API health](https://traceai-api.traceai-api.workers.dev/health)
-- Production SDK endpoint: `https://traceai-api.traceai-api.workers.dev`
-
-The live smoke created a disposable real account/project/key, verified production cookie security,
-used the actual SDK for a success and original-error failure, read two persisted traces, checked
-unknown-price null and duplicate replay, revoked the key and confirmed ingestion rejection, then
-removed its project and logged out. No real AI provider or secret was needed/committed.
-
-Measured at **2026-10-08T18:51:17Z** (Taipei Oct 9), with **10,000 persisted simulated events** over a
-fixed 30-day range and **20 samples per endpoint**. Warm-client HTTPS round-trip from the developer
-hotspot/TPE path, D1 APAC/NRT—not Worker CPU time or provider latency:
-
-| Endpoint   | Observed P95 |
-| ---------- | ------------ |
-| Overview   | 343ms        |
-| Metrics    | 306ms        |
-| Models     | 340ms        |
-| Trace list | 174ms        |
-
-These samples were below the 500ms API target in this specific small, warm-client run. They are not a
-cold-start, sustained-load or production SLA guarantee. Repeat with `/v1/demo`'s actual anchor, fixed
-filters, recorded sample count/environment and nearest-rank P95; measure cold observations separately.
-Browser page-load timing is not inferred from API timing. Sustained Free-tier quota/CPU suitability and
-retention require live monitoring; see [deployment](deployment.md).
+Live smoke/E2E write only disposable private test projects, not the public demo. Read-only benchmarks
+still consume Free quota; keep their sample caps, inspect [operations](operations.md), and never remote
+reseed or enable paid resources merely to manufacture a green benchmark. CI runs locally without
+automatic deployment and uploads failure artifacts only from disposable local environments.

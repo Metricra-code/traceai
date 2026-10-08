@@ -10,6 +10,7 @@ import { analyticsRoutes } from './routes/analytics';
 import { authRouter } from './routes/auth';
 import { projectRouter } from './routes/projects';
 import { PasswordHasher } from './services/password-hasher';
+import { runScheduledCleanup } from './services/cleanup';
 
 export { PasswordHasher };
 
@@ -84,4 +85,9 @@ app.notFound((context) =>
     404,
   ),
 );
-export default app;
+export default {
+  fetch: app.fetch,
+  scheduled(controller: ScheduledController, environment: Bindings, context: ExecutionContext) {
+    context.waitUntil(runScheduledCleanup(environment.DB, controller.scheduledTime));
+  },
+};

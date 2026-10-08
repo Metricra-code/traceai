@@ -11,6 +11,8 @@ export interface TraceOptions {
   provider: string;
   model: string;
   metadata?: TraceMetadata;
+  /** Explicit opt-in only. Known secrets are redacted; arbitrary PII is your responsibility. */
+  errorSummary?: (error: unknown) => string | undefined;
 }
 
 export interface TraceSpan {
@@ -23,6 +25,7 @@ export interface Diagnostic {
     | 'invalid_event'
     | 'invalid_metadata'
     | 'invalid_usage'
+    | 'invalid_error_summary'
     | 'queue_full'
     | 'delivery_retry'
     | 'delivery_failed'
@@ -51,3 +54,14 @@ export interface TraceAIConfig {
   /** Optional transport override for testing or a compatible platform fetch. */
   fetch?: typeof globalThis.fetch;
 }
+
+/** An already-ended operation, e.g. a server-side OpenTelemetry span. */
+export type CompletedTrace = import('@traceai/shared').TraceEvent;
+
+/** Acknowledged by HTTP, not merely queued. Delivery is best effort, never exactly-once. */
+export type DeliveryResult =
+  | { status: 'delivered' }
+  | {
+      status: 'dropped';
+      reason: 'disabled' | 'client_closed' | 'invalid_event' | 'queue_full' | 'delivery_failed';
+    };

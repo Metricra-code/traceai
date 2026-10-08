@@ -344,8 +344,12 @@ export function SettingsView() {
           In this repository: <code>bun install</code>, then run the mock example with environment
           variables. No paid model calls are required.
         </p>
-        <pre>{`TRACEAI_API_KEY=<your saved key>\nTRACEAI_ENDPOINT=<your API Worker URL>\n\nbun run demo:node`}</pre>
-        <pre>{integration}</pre>
+        <pre role="region" aria-label="SDK environment commands" tabIndex={0}>
+          {`TRACEAI_API_KEY=<your saved key>\nTRACEAI_ENDPOINT=<your API Worker URL>\n\nbun run demo:node`}
+        </pre>
+        <pre role="region" aria-label="TypeScript SDK integration example" tabIndex={0}>
+          {integration}
+        </pre>
         <p className="footnote">
           Telemetry is batched in the background. Operation results and original errors are
           preserved. Explicit usage is provider-specific; adapt those fields to your client.{' '}

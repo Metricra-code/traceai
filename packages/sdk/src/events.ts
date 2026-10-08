@@ -1,21 +1,75 @@
-import { metadataSchema, traceEventSchema, usageSchema, type TraceEvent } from '@traceai/shared';
+import {
+  metadataSchema,
+  sanitizeErrorSummary,
+  traceEventSchema,
+  usageSchema,
+  type TraceEvent,
+} from '@traceai/shared';
 import type { ReportDiagnostic } from './diagnostics';
-import type { TraceOptions, TraceSpan, Usage } from './types';
+import type { TraceMetadata, TraceOptions, TraceSpan, Usage } from './types';
 
 export interface OperationCapture {
   span: TraceSpan;
-  complete(errorType?: TraceEvent['errorType']): TraceEvent | undefined;
+  summarizeError(error: unknown): string | undefined;
+  complete(errorType?: TraceEvent['errorType'], errorSummary?: string): TraceEvent | undefined;
 }
 
+/** Snapshots valid plain scalar metadata; never serializes arbitrary objects or array indices. */
+export const snapshotTraceMetadata = (value: unknown): TraceMetadata | undefined => {
+  try {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+    const prototype: unknown = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) return undefined;
+    return metadataSchema.parse(value);
+  } catch {
+    return undefined;
+  }
+};
 const snapshotOptions = (options: TraceOptions, report: ReportDiagnostic) => {
   const labels = { name: options.name, provider: options.provider, model: options.model };
   if (options.metadata === undefined) return labels;
+  const metadata = snapshotTraceMetadata(options.metadata);
+  if (metadata) return { ...labels, metadata };
+  report({ code: 'invalid_metadata', count: 1 });
+  return labels;
+};
+
+const captureErrorSummary = (options: TraceOptions, report: ReportDiagnostic) => {
+  let callback: TraceOptions['errorSummary'];
   try {
-    const metadata = metadataSchema.parse(options.metadata);
-    return { ...labels, metadata };
+    callback = options.errorSummary;
   } catch {
-    report({ code: 'invalid_metadata', count: 1 });
-    return labels;
+    report({ code: 'invalid_error_summary', count: 1 });
+  }
+  return (error: unknown): string | undefined => {
+    if (callback === undefined) return undefined;
+    try {
+      const value: unknown = callback(error);
+      if (value === undefined) return undefined;
+      if (typeof value === 'string') {
+        const sanitized = sanitizeErrorSummary(value);
+        if (sanitized !== undefined) return sanitized;
+      } else {
+        // A mistakenly async callback must not create an unhandled rejection.
+        void Promise.resolve(value).catch(() => undefined);
+      }
+    } catch {
+      // Callback failures must never mask the application's original exception.
+    }
+    report({ code: 'invalid_error_summary', count: 1 });
+    return undefined;
+  };
+};
+
+export const snapshotCompletedEvent = (value: unknown): TraceEvent | undefined => {
+  try {
+    const parsed = traceEventSchema.safeParse(value);
+    if (!parsed.success) return undefined;
+    const { errorSummary, ...event } = parsed.data;
+    const sanitized = errorSummary === undefined ? undefined : sanitizeErrorSummary(errorSummary);
+    return sanitized === undefined ? event : { ...event, errorSummary: sanitized };
+  } catch {
+    return undefined;
   }
 };
 
@@ -48,6 +102,7 @@ export const captureOperation = (
 ): OperationCapture | undefined => {
   try {
     const labels = snapshotOptions(options, report);
+    const summarizeError = captureErrorSummary(options, report);
     const traceId = globalThis.crypto.randomUUID();
     const startedAtMs = Date.now();
     const monotonicStart = performance.now();
@@ -65,7 +120,8 @@ export const captureOperation = (
     };
     return {
       span,
-      complete(errorType) {
+      summarizeError,
+      complete(errorType, errorSummary) {
         closed = true;
         const event = traceEventSchema.safeParse({
           ...labels,
@@ -75,6 +131,7 @@ export const captureOperation = (
           endedAt: new Date(Math.max(startedAtMs, Date.now())).toISOString(),
           durationMs: Math.max(0, performance.now() - monotonicStart),
           ...usage,
+          ...(errorSummary === undefined ? {} : { errorSummary }),
           ...(errorType === undefined ? {} : { errorType }),
         });
         if (event.success) return event.data;

@@ -1,48 +1,78 @@
-# Implementation and acceptance milestones
+# Implementation and release milestones
 
-Checkmarks mean the described scope is implemented with the stated evidence, not an enterprise SLA.
-The original product specification remains unchanged in [product-spec.md](product-spec.md).
+The goal is the **full original product**, not a reduced MVP. Requirements remain unchanged in
+[product-spec.md](product-spec.md); [acceptance.md](acceptance.md) is the section-by-section ledger.
+A checked implementation item below means source exists with corresponding tests/documentation,
+**not** that the expanded release has passed current CI or live deployment verification.
 
-## Implemented
+## Implemented product scope
 
-- [x] Independent Bun workspace; strict TS, Next/OpenNext, Hono, Drizzle/D1 migrations and shared schemas.
-- [x] Core telemetry: real persisted SDK operation, atomic/idempotent ingestion, versioned pricing and rate limits.
-- [x] Standalone SDK: original results/errors, bounded batch/queue including in-flight, jitter/retry/timeout,
-      privacy, explicit usage, flush/shutdown; 58 reliability tests and independent package consumption.
-- [x] Analytics: scoped indexes, 31-day/20k bounds, nearest-rank P95, exact nanodollars, UTC zero-filled buckets,
-      model comparison, exact search and stable keyset cursors; 28 unit and 23 real D1 integration tests.
-- [x] Management APIs: private native-scrypt DO, sessions, Origin checks, owned projects, raw keys once,
-      atomic rotation/revocation and deletion confirmation; dedicated Worker integration slices.
-- [x] API-backed dashboard screens: overview/charts, models, traces/detail, account/project/settings flows,
-      loading/error/empty states and responsive controls.
-- [x] Public read-only demo routes, 10,000 deterministic simulated traces and fictional pricing isolation.
-- [x] Engineering artifacts: architecture/API/SDK/deployment docs, Vitest/Worker tests, Playwright journeys
-      and GitHub Actions with no automatic deployment.
+- [x] Independent Bun workspace: strict TypeScript, Next/OpenNext, React Query/TanStack Table/Recharts,
+      Hono, Drizzle/D1 migrations and shared Zod boundaries.
+- [x] Standalone SDK: original async result/error identity, explicit usage, bounded queue including
+      in-flight events, count/UTF-8-byte batching, transient-only full-jitter retries, bounded Retry-After,
+      timeout, singleflight flush and deterministic shutdown. Concurrent callback tracking is constant-state.
+- [x] SDK privacy and adapters: failure-only opt-in sanitized summary, scalar metadata snapshots,
+      strict completed-event recording and actual HTTP-acknowledged/drop receipts. No automatic raw errors.
+- [x] Core persistence: owned-key atomic ingestion, project-scoped deduplication, rollback, rate/body/token
+      bounds, exact fractional UTC validation and integer nanodollar pricing.
+- [x] Indexed analytics: UTC half-open windows, 31-day/20,000-row cap, nearest-rank P50/P95/P99,
+      zero-filled buckets, model comparisons, exact server filters and stable keyset cursors.
+- [x] Management/security: private native-scrypt Durable Object, secure expiring sessions, Origin/ownership
+      checks, projects/descriptions, raw keys once, rotation/revocation and confirmed project deletion.
+- [x] Usable dashboard: Average and P95 KPIs, request/latency/token/priced-cost/provider/model visualizations,
+      traces/detail, server filtering/sorting/pagination, identity/theme/project controls and settings.
+      Loading/error/empty states, exact-filter fallback, clipboard fallback and mobile navigation are implemented.
+- [x] Safe debugging/provenance: explicit marked error summaries, truthful single-operation timing and sourced
+      pricing details; legacy unmarked raw errors stay private. Unknown/incomplete cost is null, not zero.
+- [x] Sourced pricing registry: validated operator-only import, immutable versions/effective windows,
+      verification/source/billing provenance and historical cost preservation; fictional demo prices are isolated.
+- [x] Public read-only demo: deterministic 10,000 simulated operations over 30 days, visibly simulated,
+      anonymous reads without project writes or paid AI credentials.
+- [x] Bounded expired-session/rate-counter maintenance and explicit no-hidden-trace-expiry policy.
+- [x] Engineering artifacts: architecture/API/SDK/deployment/pricing/operator/troubleshooting documentation,
+      unit/real Worker-D1/browser test sources, accessibility checks and CI without automatic deployment.
 
-## Acceptance evidence and outstanding gates
+## Optional post-first-version integration — now implemented
 
-- [x] Complete MVP: 103 unit tests, 59 actual Worker/D1 integration cases, lint/typecheck/formatting passed.
-- [x] Built OpenNext/workerd: all seven Playwright management/demo/mobile/security cases passed.
-- [x] [Public demo](https://traceai-web.traceai-api.workers.dev/demo) and API HTTP 200 after compatibility fix.
-- [x] Real deployed session/password DO → SDK → D1 → duplicate replay → revoked-key rejection → cleanup smoke.
-- [x] Fixed 30-day/10k API sample: 20 measurements/endpoint, observed warm-client P95 174–343ms.
-- [x] All seven live-browser journeys passed on deployed HTTPS, including management/SDK and security.
-- [x] Latest native Bun Next16.3.8 development E2E: seven journeys passed; final workspace build passed.
-- [x] Fractional/UTC timestamp pricing regressions verified in the final 59-case Worker/D1 suite.
-- [x] [GitHub Actions](https://github.com/Metricra-code/traceai/actions/runs/37831615087) passed for published runtime revision `3d3c184`, including both E2E modes.
-- [ ] Sustained traffic/CPU/quota observations, cold/page-load measurements and retention policy.
+- [x] Separate `@traceai/opentelemetry` GenAI `SpanExporter`, preserving genuine completed span IDs,
+      high-resolution timestamps/duration and validated allowlisted usage attributes.
+- [x] Privacy-safe mapping, byte/queue/admission bounds, honest export callbacks, forceFlush/shutdown,
+      real OTel SDK tests and a no-credential in-memory provider example.
+- [x] Bun-packed public SDK/adapter artifacts, MIT license files, isolated strict public-type checks and
+      actual Bun/Node runtime consumers. No private workspace runtime dependency; **not published to npm**.
+- [x] Repeatable concurrent SDK benchmark with equal warm-up, hardware/runtime/sample/loss reporting;
+      public API/browser/modest-traffic measurement scripts document what they do and do not measure.
 
-Next is pinned to 16.3.8 while the adapter's [16.4 manifest fix](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356)
-remains unreleased. The first frontend publication exposed a dynamic-route failure despite a green build;
-actual workerd E2E and live service-binding checks caught and verified the fix without dependency-source patches.
+The SDK/adapter's focused tests, typechecks, builds and packed consumers have local passing evidence
+in [SDK](sdk.md) and [OpenTelemetry](opentelemetry.md). The expanded whole-product local and live
+results are recorded in [verification](verification.md); published-source CI remains a separate gate.
 
-Sustained operational observations remain follow-up work, not an enterprise SLA claim. See [verification](verification.md) for current
-sample/environment evidence and [deployment](deployment.md) for manual configuration/rollback.
+## Expanded-release gates
 
-## After v1 acceptance
+Current recorded results are in [verification](verification.md) and the detailed [acceptance ledger](acceptance.md).
 
-1. OpenTelemetry adapter mapping the existing operation model; preserve privacy, usage and lifecycle semantics.
-2. Provider-specific optional usage adapters and nested spans only with genuine instrumentation.
-3. Retention/operational monitoring, password recovery/email verification/MFA and abuse hardening as needed.
+- [x] Requirement/source/security review; original non-goals and privacy/cost invariants preserved.
+- [x] Frozen install, format/lint/strict TypeScript,168 unit and73 actual Worker/D1 tests.
+- [x] Workspace/OpenNext builds and isolated Bun/Node packed consumers on current source.
+- [x]17 native Next and17 built-workerd journeys, loaded-content mobile/keyboard and automated AA checks.
+- [x] Authorized additive migration and real-price import; private backup and prior Worker IDs retained.
+- [x] Current API/web deployed; three real SDK/OTel operations, exact price/privacy/key checks,
+      and17 live-browser journeys passed. No remote demo reseed.
+- [ ] Actual GitHub Actions for the published expanded source; earlier baseline CI is not substituted.
+- [ ] Final documentation/secret/scope reconciliation after that run; no remaining required work.
 
-No billing, teams, collectors, queues or model-quality claims are required for this portfolio MVP.
+Next remains pinned to **16.3.8** until a compatible adapter release passes actual workerd dynamic routes.
+Source implementation, locally green checks, a deployed health route and a passing published-source CI
+are separate evidence; do not collapse them into a completion claim.
+
+## Boundaries after release
+
+- No exactly-once/durable SDK queue, unlimited analytics, enterprise SLA or model-quality inference.
+- No OTLP collector/receiver, metrics/log backend, automatic provider patching or invented distributed span tree.
+- No automatic trace deletion or unbounded paid load testing. Quotas, user-controlled deletion and
+  measured sample scope are documented in [operations](operations.md).
+- Further provider instrumentation or additional signals require separate real instrumentation and explicit
+  scope. They are not missing original requirements and must not silently enlarge this portfolio.
+
+For a short, evidence-led presentation, use [interview-guide.md](interview-guide.md).

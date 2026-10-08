@@ -17,7 +17,7 @@ import type { MetricBucket, ModelComparison, Overview } from '@traceai/shared';
 import { useAnalytics } from '@/components/shell';
 import { Empty, Failure, Loading, Title } from '@/components/ui';
 import { api, cost, integer, latency } from '@/lib/api';
-const COLORS = ['#c6dc9a', '#e7b273', '#92b0d1', '#b49dcb', '#d5b7ab'];
+const COLORS = [1, 2, 3, 4, 5].map((number) => `var(--chart-${number})`);
 function Chart({
   title,
   note,
@@ -148,6 +148,11 @@ export function OverviewView() {
           <span>
             {integer(data.successfulRequests)} successful · {integer(data.failedRequests)} failed
           </span>
+        </div>
+        <div>
+          <p>Average latency</p>
+          <strong data-testid="average-latency">{latency(data.averageLatencyMs)}</strong>
+          <span>Across {integer(data.totalRequests)} operations</span>
         </div>
         <div>
           <p>P95 latency</p>
@@ -289,11 +294,11 @@ export function OverviewView() {
                 {models.data.items.map((item, index) => (
                   <div key={`${item.provider}/${item.model}`}>
                     <div>
-                      <span>{item.model}</span>
+                      <span>{`${item.provider} / ${item.model}`}</span>
                       <span className="mono">{integer(item.totalRequests)}</span>
                     </div>
                     <meter
-                      aria-label={`${item.model} requests`}
+                      aria-label={`${item.provider} / ${item.model} requests`}
                       min={0}
                       max={data.totalRequests}
                       value={item.totalRequests}
@@ -347,17 +352,27 @@ export function ModelsView() {
             </div>
             <div className="chart">
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart data={items} margin={{ bottom: 40, right: 24 }} accessibilityLayer>
+                <BarChart
+                  data={items}
+                  layout="vertical"
+                  margin={{ right: 24, left: 0 }}
+                  accessibilityLayer
+                >
                   <CartesianGrid stroke="var(--border)" vertical={false} />
                   <XAxis
-                    dataKey="model"
+                    type="number"
                     tick={{ fill: 'var(--muted)', fontSize: 10 }}
-                    angle={-12}
-                    textAnchor="end"
-                    interval={0}
                     tickLine={false}
                   />
-                  <YAxis tick={{ fill: 'var(--muted)', fontSize: 10 }} />
+                  <YAxis
+                    type="category"
+                    dataKey={(item: ModelComparison) => `${item.provider} / ${item.model}`}
+                    width={160}
+                    tick={{ fill: 'var(--muted)', fontSize: 10 }}
+                    interval={0}
+                    tickLine={false}
+                    axisLine={false}
+                  />
                   <Tooltip
                     contentStyle={{ background: 'var(--panel)', border: '1px solid var(--border)' }}
                   />

@@ -1,4 +1,4 @@
-import { batchSchema } from '@traceai/shared';
+import { batchSchema, sanitizeErrorSummary } from '@traceai/shared';
 import {
   countIngestionRequest,
   findEventPricing,
@@ -42,6 +42,8 @@ export async function ingestBatch(
     ...event,
     startedAt: new Date(event.startedAt).toISOString(),
     endedAt: new Date(event.endedAt).toISOString(),
+    errorSummary:
+      event.errorSummary === undefined ? undefined : sanitizeErrorSummary(event.errorSummary),
   }));
   const uniqueEvents = normalizedEvents.filter(
     (event, index, all) =>

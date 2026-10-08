@@ -1,0 +1,431 @@
+{
+  "release": {
+    "apiVersion": "8171f54a-127c-4982-b378-161868735bcc",
+    "webVersion": "1305011c-4719-4f64-99c6-a347dfbc6459"
+  },
+  "client": "Developer Taipei/macOS path, Apple M2; unthrottled, not a controlled network or CPU profile",
+  "measurements": {
+    "sdk-benchmark": {
+      "measuredAt": "2026-10-08T19:57:02.811Z",
+      "runtime": "Bun 1.4.0",
+      "hardware": {
+        "cpu": "Apple M2",
+        "logicalCpus": 8,
+        "architecture": "arm64",
+        "platform": "darwin",
+        "memoryGiB": 16
+      },
+      "iterations": 10000,
+      "warmupIterationsPerPath": 1000,
+      "repeats": 5,
+      "network": "stub HTTP acceptance; no provider or API contacted",
+      "scope": "wrapper/validation/serialization overhead; explicit between-wave drain time excluded; concurrent P95 includes wave scheduling, not just per-call CPU",
+      "results": [
+        {
+          "concurrency": 1,
+          "repeat": 1,
+          "baseline": {
+            "elapsedMs": 9.13696799999937,
+            "meanMs": 0.000913696799999937,
+            "p95Ms": 0.00033299999999769625
+          },
+          "wrapped": {
+            "elapsedMs": 244.03907099999998,
+            "meanMs": 0.024403907099999997,
+            "p95Ms": 0.023167000000000826
+          },
+          "addedMeanMs": 0.02349021030000006,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 1,
+          "repeat": 2,
+          "baseline": {
+            "elapsedMs": 6.746598000002052,
+            "meanMs": 0.0006746598000002053,
+            "p95Ms": 0.0002500000000509317
+          },
+          "wrapped": {
+            "elapsedMs": 231.82292299999926,
+            "meanMs": 0.023182292299999928,
+            "p95Ms": 0.02008299999999963
+          },
+          "addedMeanMs": 0.022507632499999722,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 1,
+          "repeat": 3,
+          "baseline": {
+            "elapsedMs": 5.961849000000484,
+            "meanMs": 0.0005961849000000484,
+            "p95Ms": 0.0002919999999448919
+          },
+          "wrapped": {
+            "elapsedMs": 221.22964500000535,
+            "meanMs": 0.022122964500000536,
+            "p95Ms": 0.014959000000089873
+          },
+          "addedMeanMs": 0.021526779600000486,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 1,
+          "repeat": 4,
+          "baseline": {
+            "elapsedMs": 6.104514999989647,
+            "meanMs": 0.0006104514999989647,
+            "p95Ms": 0.00024999999993724487
+          },
+          "wrapped": {
+            "elapsedMs": 183.59669299999905,
+            "meanMs": 0.018359669299999905,
+            "p95Ms": 0.012541999999939435
+          },
+          "addedMeanMs": 0.01774921780000094,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 1,
+          "repeat": 5,
+          "baseline": {
+            "elapsedMs": 7.730484000014258,
+            "meanMs": 0.0007730484000014258,
+            "p95Ms": 0.0002500000000509317
+          },
+          "wrapped": {
+            "elapsedMs": 199.85186100000055,
+            "meanMs": 0.019985186100000055,
+            "p95Ms": 0.013541999999915788
+          },
+          "addedMeanMs": 0.01921213769999863,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 50,
+          "repeat": 1,
+          "baseline": {
+            "elapsedMs": 3.0729950000004465,
+            "meanMs": 0.00030729950000004465,
+            "p95Ms": 0.009790999999950145
+          },
+          "wrapped": {
+            "elapsedMs": 188.2002049999992,
+            "meanMs": 0.01882002049999992,
+            "p95Ms": 0.40495800000007875
+          },
+          "addedMeanMs": 0.018512720999999874,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 50,
+          "repeat": 2,
+          "baseline": {
+            "elapsedMs": 3.6458760000016355,
+            "meanMs": 0.0003645876000001635,
+            "p95Ms": 0.010749999999916326
+          },
+          "wrapped": {
+            "elapsedMs": 243.70312399999875,
+            "meanMs": 0.024370312399999875,
+            "p95Ms": 0.8338329999999132
+          },
+          "addedMeanMs": 0.02400572479999971,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 50,
+          "repeat": 3,
+          "baseline": {
+            "elapsedMs": 3.89612500000203,
+            "meanMs": 0.000389612500000203,
+            "p95Ms": 0.011792000000014013
+          },
+          "wrapped": {
+            "elapsedMs": 221.23917100000176,
+            "meanMs": 0.022123917100000175,
+            "p95Ms": 0.5534580000000915
+          },
+          "addedMeanMs": 0.021734304599999973,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 50,
+          "repeat": 4,
+          "baseline": {
+            "elapsedMs": 3.571167999998579,
+            "meanMs": 0.0003571167999998579,
+            "p95Ms": 0.010917000000063126
+          },
+          "wrapped": {
+            "elapsedMs": 208.24658100000033,
+            "meanMs": 0.020824658100000032,
+            "p95Ms": 1.0904579999996713
+          },
+          "addedMeanMs": 0.020467541300000173,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 50,
+          "repeat": 5,
+          "baseline": {
+            "elapsedMs": 4.055878999999095,
+            "meanMs": 0.0004055878999999095,
+            "p95Ms": 0.01141700000016499
+          },
+          "wrapped": {
+            "elapsedMs": 204.95557500000177,
+            "meanMs": 0.020495557500000178,
+            "p95Ms": 0.6348330000000715
+          },
+          "addedMeanMs": 0.020089969600000267,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 1000,
+          "repeat": 1,
+          "baseline": {
+            "elapsedMs": 3.9903320000007625,
+            "meanMs": 0.00039903320000007626,
+            "p95Ms": 0.29279200000019046
+          },
+          "wrapped": {
+            "elapsedMs": 148.45729100000062,
+            "meanMs": 0.014845729100000062,
+            "p95Ms": 15.5637499999998
+          },
+          "addedMeanMs": 0.014446695899999987,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 1000,
+          "repeat": 2,
+          "baseline": {
+            "elapsedMs": 3.795085000000199,
+            "meanMs": 0.00037950850000001993,
+            "p95Ms": 0.24475000000029468
+          },
+          "wrapped": {
+            "elapsedMs": 125.31954199999973,
+            "meanMs": 0.012531954199999973,
+            "p95Ms": 13.659000000000106
+          },
+          "addedMeanMs": 0.012152445699999953,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 1000,
+          "repeat": 3,
+          "baseline": {
+            "elapsedMs": 3.6568750000014916,
+            "meanMs": 0.00036568750000014915,
+            "p95Ms": 0.8480420000000777
+          },
+          "wrapped": {
+            "elapsedMs": 100.22866700000031,
+            "meanMs": 0.010022866700000032,
+            "p95Ms": 10.963624999999865
+          },
+          "addedMeanMs": 0.009657179199999883,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 1000,
+          "repeat": 4,
+          "baseline": {
+            "elapsedMs": 3.3889580000000024,
+            "meanMs": 0.00033889580000000025,
+            "p95Ms": 0.2825830000001588
+          },
+          "wrapped": {
+            "elapsedMs": 110.59595799999943,
+            "meanMs": 0.011059595799999943,
+            "p95Ms": 13.097499999999854
+          },
+          "addedMeanMs": 0.010720699999999942,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        },
+        {
+          "concurrency": 1000,
+          "repeat": 5,
+          "baseline": {
+            "elapsedMs": 4.6280409999994845,
+            "meanMs": 0.00046280409999994846,
+            "p95Ms": 1.1680830000000242
+          },
+          "wrapped": {
+            "elapsedMs": 113.1511660000001,
+            "meanMs": 0.01131511660000001,
+            "p95Ms": 14.625292000000172
+          },
+          "addedMeanMs": 0.010852312500000062,
+          "batches": 200,
+          "delivered": 10000,
+          "dropped": 0
+        }
+      ]
+    },
+    "dashboard-release": {
+      "url": "https://traceai-web.traceai-api.workers.dev/demo",
+      "measuredAt": "2026-10-08T20:18:27.628Z",
+      "browser": "Chromium 156.0.8078.4",
+      "viewport": "1440x1040",
+      "scope": "Read-only default 7-day simulated demo. Unthrottled client connection/CPU. Usable means total/P95 visible, six chart panels sized and five SVG charts rendered. Fresh browser context is not proof of a cold edge Worker. Warm run reuses browser HTTP cache, not Next client navigation. Includes network, hydration and API waterfall; not an SLA or universal <3s claim.",
+      "summary": {
+        "coldBrowserCache": {
+          "samples": 3,
+          "p50Ms": 1584,
+          "p95Ms": 2222,
+          "maximumMs": 2222,
+          "samplesUnderTarget": 3
+        },
+        "warmBrowserCache": {
+          "samples": 3,
+          "p50Ms": 1063,
+          "p95Ms": 1102,
+          "maximumMs": 1102,
+          "samplesUnderTarget": 3
+        }
+      },
+      "measurements": [
+        {
+          "coldBrowserCache": {
+            "usableOverviewMs": 2222,
+            "timeToFirstByteMs": 184,
+            "domContentLoadedMs": 396,
+            "firstContentfulPaintMs": 408
+          },
+          "warmBrowserCache": {
+            "usableOverviewMs": 1102,
+            "timeToFirstByteMs": 238,
+            "domContentLoadedMs": 294,
+            "firstContentfulPaintMs": 300
+          }
+        },
+        {
+          "coldBrowserCache": {
+            "usableOverviewMs": 1550,
+            "timeToFirstByteMs": 168,
+            "domContentLoadedMs": 235,
+            "firstContentfulPaintMs": 244
+          },
+          "warmBrowserCache": {
+            "usableOverviewMs": 1063,
+            "timeToFirstByteMs": 193,
+            "domContentLoadedMs": 251,
+            "firstContentfulPaintMs": 256
+          }
+        },
+        {
+          "coldBrowserCache": {
+            "usableOverviewMs": 1584,
+            "timeToFirstByteMs": 126,
+            "domContentLoadedMs": 270,
+            "firstContentfulPaintMs": 276
+          },
+          "warmBrowserCache": {
+            "usableOverviewMs": 953,
+            "timeToFirstByteMs": 80,
+            "domContentLoadedMs": 136,
+            "firstContentfulPaintMs": 140
+          }
+        }
+      ]
+    },
+    "api-benchmark-release": {
+      "endpoint": "https://traceai-api.traceai-api.workers.dev",
+      "measuredAt": "2026-10-08T20:19:30.846Z",
+      "window": {
+        "from": "2026-09-08T23:55:40.801Z",
+        "to": "2026-10-08T23:55:40.801Z"
+      },
+      "scope": "30-day simulated 10,000-event dataset; client-observed round-trip including network/JSON; warm-up excluded; not an SLA or CPU metric",
+      "result": {
+        "overview": {
+          "samples": 20,
+          "p50Ms": 200,
+          "p95Ms": 244,
+          "maxMs": 306
+        },
+        "metrics": {
+          "samples": 20,
+          "p50Ms": 187,
+          "p95Ms": 212,
+          "maxMs": 281
+        },
+        "models": {
+          "samples": 20,
+          "p50Ms": 178,
+          "p95Ms": 280,
+          "maxMs": 301
+        },
+        "traces": {
+          "samples": 20,
+          "p50Ms": 135,
+          "p95Ms": 145,
+          "maxMs": 153
+        }
+      }
+    },
+    "api-observation-release": {
+      "endpoint": "https://traceai-api.traceai-api.workers.dev",
+      "measuredAt": "2026-10-08T20:20:29.258Z",
+      "scope": "Read-only 30-day/10k simulated demo. Sequential rotating overview/metrics/models/traces at fixed start interval. Includes first request and failed samples, client network/body time; no writes. Short modest-traffic observation, not a soak/load test, edge CPU measurement or SLA.",
+      "samples": 30,
+      "intervalMs": 2000,
+      "observedDurationMs": 58208,
+      "statuses": {
+        "200": 30
+      },
+      "p50Ms": 190,
+      "p95Ms": 435,
+      "maximumMs": 455,
+      "endpoints": [
+        {
+          "path": "overview",
+          "samples": 8
+        },
+        {
+          "path": "metrics",
+          "samples": 8
+        },
+        {
+          "path": "models",
+          "samples": 7
+        },
+        {
+          "path": "traces",
+          "samples": 7
+        }
+      ]
+    }
+  }
+}

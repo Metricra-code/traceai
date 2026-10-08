@@ -27,7 +27,10 @@ try {
 
 **Server-side only:** ingestion keys must never be included in a browser bundle.
 Bun 1.4+ or Node.js 22+ provides the required Fetch, Web Crypto and performance APIs; the SDK has no Bun-specific dependencies.
-Only explicit scalar metadata is sent; prompts, results and raw error messages are never collected.
+Only explicit scalar metadata is sent; prompts, results and raw error messages are never collected by default.
+Failure-only `TraceOptions.errorSummary(error)` is a deliberate opt-in for a safe summary, not automatic
+`.message` capture. Known-secret redaction is best effort, not an all-PII guarantee; invalid/oversized
+summaries and callback failures are omitted while the original application error is rethrown.
 Treat custom metadata as potentially sensitive.
 
 Default limits: batch 50, UTF-8 payload 256 KiB, metadata 8 KiB, 1,000 queued/in-flight events,
@@ -42,5 +45,14 @@ Operations must have their own deadlines; never await shutdown from inside a tra
 Retry: only network failures, timeouts, HTTP 408/429/5xx; exponential full jitter and bounded Retry-After.
 Permanent failures and retry exhaustion drop the batch. Queue overflow drops the newest event.
 The queue is in memory: process crashes, abrupt termination and serverless suspension can lose it.
+
+`record(completedEvent)` validates/snapshots an already-ended operation and returns an actual
+HTTP-acknowledged `delivered` or explicit `dropped` receipt. Do not mistake fulfillment of
+best-effort `flush()` for acceptance. Call `flush()` before awaiting a short-lived process's receipt.
+The optional `@traceai/opentelemetry` package uses this path; the core SDK has no OTel dependency.
+
+**Not published to npm:** use this repository's workspace build or Bun-packed tarball. The repository's
+`bun run test:packages` verifies isolated public types, MIT license files, and Bun + Node 22 runtime
+consumers. It does not publish anything.
 
 Full integration, tuning, testing and benchmark guidance lives in the repository's `docs/sdk.md`.

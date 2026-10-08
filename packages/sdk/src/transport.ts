@@ -32,10 +32,10 @@ export class BatchTransport {
     private readonly report: ReportDiagnostic,
   ) {}
 
-  async send(body: string, count: number): Promise<void> {
+  async send(body: string, count: number): Promise<boolean> {
     for (let attempt = 1; attempt <= this.config.maxAttempts; attempt++) {
       const result = await this.sendAttempt(body);
-      if (result.successful) return;
+      if (result.successful) return true;
       const detail = {
         count,
         attempt,
@@ -43,11 +43,12 @@ export class BatchTransport {
       };
       if (!result.retryable || attempt === this.config.maxAttempts) {
         this.report({ code: 'delivery_failed', ...detail });
-        return;
+        return false;
       }
       this.report({ code: 'delivery_retry', ...detail });
       await waitForRetry(result, attempt, this.config);
     }
+    return false;
   }
 
   private async sendAttempt(body: string): Promise<AttemptResult> {

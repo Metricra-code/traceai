@@ -1,0 +1,100 @@
+# Full-product acceptance ledger
+
+The user's completion request goes beyond the first working MVP. This ledger retains the
+unchanged [original specification](product-spec.md) as the source of requirements, records real
+gaps found by three independent source audits, and separates additional product work from the
+original non-goals. A feature, a test file, a passing local run and a deployed verification are
+different kinds of evidence. No unchecked release gate is a completion claim.
+
+## Original requirements, section by section
+
+| Spec   | Required outcome                                                                                  | Implementation / evidence                                                                                    | Resolved verification path                                                                           |
+| ------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| §1     | Request volume, latency percentiles, usage, estimates, success/failure, model/trace debugging     | Shared Overview, API analytics services, real D1 analytics tests, API-backed screens                         | Explicit safe summaries and Average/P95 have source, D1 and browser evidence                         |
+| §2–4   | Independent strict TypeScript Bun monorepo and specified frontend/backend/test stack              | apps/web, apps/api, SDK/shared/database/config workspaces; root scripts and CI                               | Adapted shadcn/Radix menu and isolated packed-package consumers are implemented and locally verified |
+| §3     | Async privacy-first telemetry, separate dashboard/ingestion, bounded resources, UTC and ownership | SDK queue/retry lifecycle; scoped repository queries; Zod contracts; BFF                                     | New SDK/exporter/API slices preserve privacy and resource boundaries in focused regressions          |
+| §5.1   | Projects, descriptions, ownership, one-time keys, revoke/rotate/delete                            | Project service/repository, settings UI, Worker tests and real account → SDK E2E                             | Real rename/selector/clipboard-denied/key-secrecy browser assertions added                           |
+| §5.2   | Email/password, secure expiring sessions, logout, rate limits, CSRF                               | Private scrypt DO, HttpOnly cookie, auth/ownership integration tests                                         | Identity menu, safe returnTo and bounded hourly expired-record maintenance verified                  |
+| §5.3   | Generic SDK trace/usage/result/error preservation; batching/retry/bounds/flush/shutdown           | SDK source and 58 baseline reliability cases                                                                 | O(1) active bookkeeping, summary callback and packed Bun/Node consumers verified                     |
+| §6     | Indexed relational schema, migrations, idempotency, precise money                                 | Drizzle schema, initial D1 migration; real persistence/rollback/precision tests                              | Additive 0002, immutable pricing and legacy-summary isolation verified                               |
+| §7     | Authenticated bounded atomic ingestion, dedup, validation and rate/error semantics                | Actual Worker ingestion suite and strict shared schemas                                                      | UTF-8/date/token/extra-field and nanosecond-ordering zero-write regressions added                    |
+| §8     | All management/analytics endpoints, owner scope, filters, stable cursor pagination                | All named routes exist; exact filters and newest/oldest keyset tests                                         | Caps retained; test-injected aggregate 422 exercises exact controls against real trace queries       |
+| §9     | Working responsive dashboard, five navigation destinations plus docs, date/theme/user controls    | Six overview visualizations, trace explorer/detail, model table and P95 chart, project/settings/auth screens | All listed controls implemented; loaded-content responsive, keyboard and AA evidence expanded        |
+| §9.1   | Four named primary KPIs plus request/latency/token/cost/provider/model visualizations             | Total/error/cost and P95 primary; Average was only secondary                                                 | Average added alongside the user's priority P95                                                      |
+| §9.2–3 | Every trace column, server filters/sort/pages, detail and truthful single-operation timeline      | TanStack Table, exact search and time sorting; backend and core E2E                                          | Real filters/sort/cursors/detail and explicit mocked error-state assertions; no fake span tree       |
+| §9.4   | Operational model comparisons with relevant charts, not quality claims                            | Request count/avg/P95/success rate/tokens/cost and P95 chart already exist                                   | Real API values and provider-qualified chart/meter identities asserted                               |
+| §9.5   | Editable projects, copyable SDK examples, one-time key lifecycle and confirmed deletion           | Existing settings and management E2E                                                                         | Clipboard fallback, rename/selector, one-time/reload secrecy asserted                                |
+| §10    | Usable local versioned sourced pricing registry, unknown price null, immutable trace pricing      | Pricing mechanism worked, but only fictional demo records shipped                                            | Two officially sourced snapshots, immutable import, provenance and D1 semantics verified             |
+| §11    | 10,000 deterministic multi-model/30-day simulated traces and read-only public demo                | Generator, seed, demo routes, live 10,000-row evidence                                                       | Fictional prices remain isolated; existing remote demo was not reseeded during upgrade               |
+| §12    | Input/auth/tenant/body/rate/CORS/logging/SQL/XSS/secret/privacy security                          | Origin-checked same-origin BFF; owner tests; parameterized SQL; generic errors; no raw capture               | Explicit bounded summary policy and source/bundle/tarball secret review completed                    |
+| §13    | Repeatable SDK/API/dashboard performance evidence; <3s and <500ms targets                         | SDK stub benchmark and 20-sample warm API benchmark existed                                                  | Reproducible browser/API/concurrent-SDK measurements with explicit scope and limitations             |
+| §14    | Vitest unit, actual Worker/D1 integration and meaningful Playwright journeys                      | Baseline 103 unit, 59 integration, 7 E2E cases in dev/workerd/live                                           | Current 168 unit / 73 actual D1 / 17 browser cases; runtime results in verification.md               |
+| §15    | Installation/env/migration/seed/SDK/API/architecture/deployment/troubleshooting docs              | README plus dedicated architecture/API/SDK/demo/deployment/verification docs                                 | Troubleshooting, pricing, OTel, operator and interview guides added; release evidence below          |
+| §16    | Actions install/lint/types/unit/integration/build, no automatic deployment                        | Existing CI additionally runs dev and built-workerd E2E                                                      | Packed-consumer and AA checks included; actual published CI is a separate release gate               |
+| §17/20 | Complete source, SDK/API/dashboard/migrations/seed/tests/docs and verified release                | Independent public repository and live Workers                                                               | All current release gates below must pass before declaring the goal complete                         |
+
+## Original §19 acceptance checks
+
+The original specification is preserved unchanged. All24 original acceptance checks have current
+local and deployed evidence in [verification](verification.md), not merely the earlier green baseline:
+
+| #   | Original acceptance                 | Current evidence                                                                |
+| --- | ----------------------------------- | ------------------------------------------------------------------------------- |
+| 1   | Entire project runs locally         | Frozen Bun setup, migrated/priced/seeded local D1,17 native journeys            |
+| 2   | Public dashboard deployed           | Recorded current web version and17 live HTTPS journeys                          |
+| 3   | No paid dependency                  | Free Workers/D1/private SQLite DO, mock provider/no paid AI calls               |
+| 4   | Create project                      | Real account/project E2E and live smoke                                         |
+| 5   | Generate/revoke keys                | One-time reveal, rotate/revoke/old-key rejection, real owner tests              |
+| 6   | SDK tracks async operations         | Original result/error identity and real SDK→D1 proof                            |
+| 7   | Duration/status/optional usage      | Monotonic SDK timing and actual persistence/read-back                           |
+| 8   | SDK errors do not break application | Fail-open/retry/timeout/observer/getter/result tests                            |
+| 9   | Persist telemetry in D1             | Real Worker/D1 suite and deployed three-operation smoke                         |
+| 10  | Accurate aggregate metrics          | Nearest-rank/integer-money tests and real UI-to-API assertions                  |
+| 11  | Working request/latency charts      | Real metrics API, six loaded panels/five SVGs, current screenshot               |
+| 12  | Server filters/pages                | Every filter, exact ID, both orders and cursor navigation                       |
+| 13  | View trace detail                   | Actual operation timing/usage/summary/provenance browser checks                 |
+| 14  | Model comparisons                   | Requests/Average/P95/success/tokens/cost table and provider-qualified charts    |
+| 15  | Unknown pricing handled             | Null total, labeled known subtotal and isolated fictional prices                |
+| 16  | Anonymous public demo               | Real read-only demo endpoints/browser flows                                     |
+| 17  | Simulated label                     | UI markers and deterministic10,000-row seed; no fake production traffic         |
+| 18  | Auth/project isolation tested       | Real cross-owner/Origin/session/key Worker and browser assertions               |
+| 19  | TypeScript checks pass              | Strict root/scripts/E2E and all workspace commands                              |
+| 20  | Unit/integration tests pass         | 168 unit /73 actual workerd-D1 cases                                            |
+| 21  | Production build succeeds           | All workspace/OpenNext bundles and actual built-workerd journeys                |
+| 22  | Installation/SDK README             | Reproducible Bun setup, workspace/tarball use and no-credential examples        |
+| 23  | No committed secrets                | Source/bundle/tarball review; ignored restricted backup/artifacts; normal hooks |
+| 24  | Cloudflare setup documented         | Explicit migration/import/API→web rollout and version/rollback evidence         |
+
+Detailed §9/§10/§12 gaps were resolved rather than dismissed by these broad checks. Publication CI and
+final reconciliation remain separate release gates below until their actual run/commit is recorded.
+
+## Post-first-version integration and operational depth
+
+- [x] Separate optional OpenTelemetry JavaScript trace exporter, using genuine completed span times,
+      trace/span identity and explicitly allowlisted GenAI usage attributes.
+- [x] Real OpenTelemetry SDK unit/in-memory example and SDK → Worker → D1 integration proof;
+      lifecycle acknowledgements must not claim successful delivery after drops.
+- [x] No automatic copying of arbitrary span attributes, prompt/response events, exception messages,
+      headers or resource identity. Collector/OTLP, metrics and log storage are not claimed.
+- [x] Concurrent SDK workload evidence and isolated packed-package Node/Bun consumers locally verified;
+      the consumer check is configured in CI, with the publication run tracked separately below.
+- [x] Bounded expired session/rate-counter maintenance, safe job counts and quota/retention policy.
+      User traces are never silently deleted by maintenance.
+- [x] Browser timing and automated AA/keyboard/responsive checks with stated measurement scope.
+
+These are additional deliverables for this completion request, not retroactive claims that §18
+required a collector, teams, Stripe, evaluation pipeline or a fake distributed trace tree.
+
+## Current release gates
+
+- [x] Original explicit UI/registry/error-summary gaps resolved and reviewed.
+- [x] All format/lint/strict TS checks pass, including scripts and E2E TypeScript.
+- [x] Current unit and actual Worker/D1 suites pass.
+- [x] All workspace/OpenNext builds and independent package consumers pass.
+- [x] Expanded native Next and built-workerd browser suites pass without retries or weakened assertions.
+- [x] Safe additive migrations and real-price import applied to the authorized Cloudflare account.
+- [x] Current API/web deployed; live product/security/SDK/OTel smoke and browser journeys pass.
+- [ ] Actual GitHub Actions run for the published source passes.
+- [ ] Architecture/README/API/SDK/deployment/troubleshooting/verification reflect actual features,
+      measurements, release IDs and remaining operational limits.
+- [ ] Final source/secret/scope review; no remaining required work.

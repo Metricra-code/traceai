@@ -29,4 +29,25 @@ describe('shared contracts', () => {
       }).success,
     ).toBe(false);
   });
+  it.each([
+    ['2026-10-09T00:00:00.123456789Z', '2026-10-09T00:00:00.123456788Z', false],
+    ['2026-10-09T00:00:00.123456788Z', '2026-10-09T00:00:00.123456789Z', true],
+    ['2026-10-09T00:00:00.9Z', '2026-10-09T00:00:00.10Z', false],
+    ['2026-10-09T00:00:00.1Z', '2026-10-09T00:00:00.100000000Z', true],
+    ['2026-10-09T00:00:00.999999999Z', '2026-10-09T00:00:01Z', true],
+    ['2026-10-09T00:00:00Z', '2026-10-09T00:00:00.000000001Z', true],
+  ])('validates exact UTC fractional ordering from %s to %s', (startedAt, endedAt, valid) => {
+    expect(
+      traceEventSchema.safeParse({
+        traceId: 'fractional-test',
+        name: 'fractional-test',
+        provider: 'mock',
+        model: 'mock',
+        status: 'success',
+        startedAt,
+        endedAt,
+        durationMs: 0,
+      }).success,
+    ).toBe(valid);
+  });
 });

@@ -1,5 +1,5 @@
 import { apiKeys, traces } from '@traceai/database';
-import { type TraceEvent } from '@traceai/shared';
+import { ERROR_CAPTURE_POLICY, type TraceEvent } from '@traceai/shared';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import type { PricingVersion, TraceCost } from '../services/pricing';
@@ -157,6 +157,8 @@ function traceRow(
     estimatedCostNanoUsd: event.estimatedCostNanoUsd,
     pricingVersion: event.pricingVersion,
     errorType: event.errorType ?? null,
+    errorMessage: event.errorSummary ?? null,
+    errorCapturePolicy: event.errorSummary === undefined ? null : ERROR_CAPTURE_POLICY,
     metadataJson: JSON.stringify(event.metadata ?? {}),
     createdAt,
   };

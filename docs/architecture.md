@@ -1,13 +1,16 @@
 # Architecture
 
-The paths below are implemented and deployed: [web demo](https://traceai-web.traceai-api.workers.dev/demo),
-[API health](https://traceai-api.traceai-api.workers.dev/health). Built-workerd E2E and real deployed
-SDK/account/key-revocation checks passed; final browser/CI evidence is tracked separately
-in [verification](verification.md).
+The web/API Workers are deployed: [web demo](https://traceai-web.traceai-api.workers.dev/demo),
+[API health](https://traceai-api.traceai-api.workers.dev/health). The standalone SDK and optional OTel
+exporter are client packages verified against those Workers, not additional hosted collectors.
+Current built-workerd/live-browser and real SDK/OTel → D1 evidence is recorded separately from
+published-source CI in [verification](verification.md).
 
 ```mermaid
 flowchart LR
     A[Developer application / mock provider] --> S[Standalone TypeScript SDK]
+    O[Existing server-side OpenTelemetry SDK] --> E[Optional GenAI SpanExporter]
+    E -->|allowlisted genuine ended spans / delivery receipts| S
     S -->|safe non-blocking capture| Q[Bounded in-memory queue]
     Q -->|byte-bounded batch / jitter / timeout| H[Hono API Worker]
     H --> K[Project key authentication / atomic rate limit]
@@ -15,6 +18,7 @@ flowchart LR
     K --> R[Trace repository / idempotent inserts]
     V --> R
     P[Versioned real pricing] --> R
+    OP[Operator / verified public manifest] -->|explicit immutable guarded import| P
     R --> D[(Cloudflare D1 / SQLite)]
     B[Browser / React dashboard] --> N[Next.js OpenNext Worker]
     N -->|same-origin proxy / service binding| H
@@ -26,6 +30,7 @@ flowchart LR
     U[Public read-only simulated demo] --> N
     H --> DE[Fixed demo project reads]
     DE --> D
+    CR[Hourly bounded expired-auth cleanup] -->|expired sessions and counters only| D
 ```
 
 ## Responsibilities and trust boundaries
@@ -40,8 +45,16 @@ flowchart LR
   cookie mutations require the configured web Origin. Public demo reads always use project `demo`, never a query-supplied ID.
 - Sessions use random tokens, hashed-at-rest IDs, seven-day expiration, HttpOnly/SameSite cookies and production Secure.
   API keys are independently salted, random 256-bit credentials; only a hash/prefix is stored and raw values are shown once.
-- Prompts, responses, authentication headers and original error messages are not ingested. Legacy `error_message`
-  columns are deliberately not selected by trace APIs. Opt-in metadata must not contain PII/secrets.
+- Prompts, responses, authentication headers and original exception messages are never automatically ingested.
+  An explicit failure-only summary callback/input passes bounded known-pattern redaction in SDK and server.
+  Only stored summaries with `explicit-summary-v1` are exposed, and they are sanitized again on read;
+  legacy unmarked `error_message` values remain private. Custom metadata/summaries must not contain PII/secrets;
+  regex redaction is defense-in-depth, not an arbitrary-data privacy guarantee.
+- OpenTelemetry is an optional exporter package, not a collector. It maps real completed GenAI span time/identity,
+  operation/provider/model and validated token counts; arbitrary resources/events/status descriptions/span names
+  are excluded. Explicit mappers are bounded and validated. Export callbacks reflect HTTP acknowledgements or
+  drops, never assume that enqueue/flush alone proved persistence. Existing SDK → API → D1 verification checks
+  real storage separately.
 
 ## Password runtime decision
 
@@ -72,6 +85,12 @@ This is a runtime/resource trade-off, not proof of unlimited throughput or zero-
   aggregate total null, with explicit priced/unpriced counts. The separately labeled known subtotal sums
   priced requests only (null if a nonempty set is entirely unpriced); it never stands in for a grand total.
   Demo prices cannot price normal ingestion.
+- The checked-in sourced registry has explicit verification/effective timestamps and billing basis. One-statement
+  imports and D1 triggers reject mutable version IDs and overlapping windows atomically. Historical trace costs
+  never change when a registry version is imported; [pricing](pricing.md) documents base-rate limitations.
+- Scheduled maintenance deletes at most 250 expired sessions and 250 expired rate counters per hourly invocation.
+  It never deletes user traces, keys, projects, accounts or price history. Only safe counts/failure categories are
+  logged. [Operations](operations.md) defines quota checks, the no-hidden-trace-expiry policy and rollback.
 
 ## Deliberate trade-offs
 
@@ -79,6 +98,7 @@ SDK delivery is best-effort, not durable: abrupt termination can lose queued eve
 trace IDs/body; database deduplication does not imply exactly-once delivery. Overflow drops newest telemetry
 instead of backpressuring application work. Explicit flush/shutdown and safe diagnostics make loss observable.
 
-There are no collectors, Redis/Kafka, paid AI calls, nested spans or WebSocket updates. No model-quality
-claims are inferred from operational latency. Email verification/password recovery/MFA, retention automation
-and OpenTelemetry remain future work. See [deployment](deployment.md) for quotas, lifecycle and live checks.
+There are no collectors, Redis/Kafka, paid AI calls, nested-span tree or WebSocket updates. The optional
+OpenTelemetry exporter does not imply OTLP ingress or metrics/log storage. No model-quality claims are inferred
+from operational latency. Email verification/password recovery/MFA and automatic trace archival/expiry remain
+outside the delivered scope. See [deployment](deployment.md) for quotas, lifecycle and live checks.

@@ -1,5 +1,7 @@
 import { TraceAI } from '../packages/sdk/src/index';
 import { randomUUID } from 'node:crypto';
+import { BasicTracerProvider, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { TraceAIExporter } from '../packages/opentelemetry/src/index';
 
 const web = process.env.TRACEAI_WEB_URL ?? 'https://traceai-web.traceai-api.workers.dev';
 const endpoint = process.env.TRACEAI_ENDPOINT ?? 'https://traceai-api.traceai-api.workers.dev';
@@ -56,7 +58,12 @@ try {
   const original = new Error('Do not collect this private error');
   try {
     await sdk.trace(
-      { name: 'deployment-failure', provider: 'local', model: 'mock-model' },
+      {
+        name: 'deployment-failure',
+        provider: 'local',
+        model: 'mock-model',
+        errorSummary: () => 'Mock operation failed; token=do-not-store',
+      },
       async () => {
         throw original;
       },
@@ -65,6 +72,28 @@ try {
     check(error === original, 'SDK changed original error');
   }
   await sdk.shutdown();
+  const exporter = new TraceAIExporter({
+    apiKey: created.key,
+    endpoint,
+    metadata: () => ({ simulated: true, source: 'deployment-verification' }),
+  });
+  const provider = new BasicTracerProvider({
+    spanProcessors: [new SimpleSpanProcessor(exporter)],
+  });
+  const span = provider.getTracer('traceai-deployment-check').startSpan('private span name', {
+    attributes: {
+      'gen_ai.operation.name': 'chat',
+      'gen_ai.provider.name': 'openai',
+      'gen_ai.request.model': 'gpt-4.1-mini',
+      'gen_ai.usage.input_tokens': 1000,
+      'gen_ai.usage.output_tokens': 500,
+      'gen_ai.input.messages': 'Never collect this private prompt',
+    },
+  });
+  const context = span.spanContext();
+  span.end();
+  await provider.forceFlush();
+  await provider.shutdown();
   const query = new URLSearchParams({
     from: new Date(Date.now() - 86_400_000).toISOString(),
     to: new Date(Date.now() + 60_000).toISOString(),
@@ -73,12 +102,35 @@ try {
     totalRequests: number;
     failedRequests: number;
     estimatedCostNanoUsd: string | null;
+    knownEstimatedCostNanoUsd: string | null;
+    pricedRequests: number;
   }>(`${base}/overview?${query}`);
   check(
-    overview.totalRequests === 2 && overview.failedRequests === 1,
+    overview.totalRequests === 3 && overview.failedRequests === 1,
     'Live SDK telemetry not persisted correctly',
   );
   check(overview.estimatedCostNanoUsd === null, 'Unknown pricing was substituted');
+  check(
+    overview.pricedRequests === 1 && overview.knownEstimatedCostNanoUsd === '1200000',
+    'Verified real-price snapshot was not applied accurately',
+  );
+  const otel = await call<{
+    traceId: string;
+    name: string;
+    metadata?: Record<string, unknown>;
+    pricing?: { sourceUrl: string; billingBasis: string };
+  }>(`${base}/traces/otel_${context.traceId}_${context.spanId}`);
+  check(
+    otel.name === 'chat' &&
+      otel.metadata?.otelTraceId === context.traceId &&
+      otel.metadata?.otelSpanId === context.spanId,
+    'Real OpenTelemetry span identity was not persisted',
+  );
+  check(
+    otel.pricing?.sourceUrl === 'https://developers.openai.com/api/docs/models/gpt-4.1-mini' &&
+      otel.pricing.billingBasis === 'base-text-global',
+    'Pricing provenance was not preserved',
+  );
   const traces = await call<{
     items: Array<{
       traceId: string;
@@ -91,6 +143,21 @@ try {
       durationMs: number;
     }>;
   }>(`${base}/traces?${query}`);
+  check(
+    !JSON.stringify(traces).includes('Do not collect this private error') &&
+      !JSON.stringify(traces).includes('do-not-store') &&
+      !JSON.stringify(otel).includes('Never collect this private prompt') &&
+      !JSON.stringify(otel).includes('private span name'),
+    'Private error/prompt/span name escaped the capture policy',
+  );
+  const summaries = await call<{ items: Array<{ name: string; errorSummary?: string }> }>(
+    `${base}/traces?${query}`,
+  );
+  check(
+    summaries.items.find((item) => item.name === 'deployment-failure')?.errorSummary ===
+      'Mock operation failed; token=[redacted]',
+    'Explicit safe summary was not persisted and redacted',
+  );
   const trace = traces.items[0]!;
   const event = {
     traceId: trace.traceId,
@@ -127,10 +194,13 @@ try {
       'real SDK success/error preservation',
       'D1 persistence',
       'unknown price null',
+      'OpenTelemetry real span identity and prompt privacy',
+      'verified real-price snapshot and provenance',
+      'explicit redacted error summary',
       'idempotent replay',
       'key revocation',
     ],
-    requests: 2,
+    requests: 3,
   };
 } catch (error) {
   verificationError = error;

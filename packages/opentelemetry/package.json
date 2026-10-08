@@ -1,0 +1,39 @@
+{
+  "name": "@traceai/opentelemetry",
+  "version": "0.1.0",
+  "description": "Privacy-first OpenTelemetry GenAI span exporter for TraceAI",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsup --config tsup.config.ts"
+  },
+  "dependencies": {
+    "@traceai/sdk": "workspace:*",
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/core": "2.12.0"
+  },
+  "peerDependencies": {
+    "@opentelemetry/sdk-trace-base": "^2.12.0"
+  },
+  "devDependencies": {
+    "@opentelemetry/sdk-trace-base": "2.12.0"
+  }
+}

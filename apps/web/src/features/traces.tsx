@@ -6,7 +6,15 @@ import Link from 'next/link';
 import type { ModelComparison, Trace, TracePage } from '@traceai/shared';
 import { useAnalytics } from '@/components/shell';
 import { Empty, Failure, Loading, Status, Title, CopyButton } from '@/components/ui';
-import { api, cost, integer, latency, utc } from '@/lib/api';
+import { ApiError, api, cost, integer, latency, utc } from '@/lib/api';
+function pricingSource(value: string): string | undefined {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
+}
 export function TracesView() {
   const context = useAnalytics();
   return (
@@ -35,6 +43,7 @@ function TraceExplorer() {
     queryKey: [apiBase, 'models', query],
     queryFn: () => api<{ items: ModelComparison[] }>(`${apiBase}/models?${query}`),
   });
+  const manualFilters = options.error instanceof ApiError && options.error.status === 422;
   const params = new URLSearchParams(query);
   Object.entries(filters).forEach(([key, value]) => {
     if (value) params.set(key, value);
@@ -58,6 +67,16 @@ function TraceExplorer() {
   function searchId(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     update('traceId', String(new FormData(event.currentTarget).get('traceId') ?? '').trim());
+  }
+  function applyExactFilters(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const fields = new FormData(event.currentTarget);
+    setFilters((previous) => ({
+      ...previous,
+      provider: String(fields.get('provider') ?? '').trim(),
+      model: String(fields.get('model') ?? '').trim(),
+    }));
+    setCursors([]);
   }
   const columns = useMemo<ColumnDef<Trace>[]>(
     () => [
@@ -121,36 +140,66 @@ function TraceExplorer() {
   return (
     <>
       <div className="filters">
-        <label>
-          Provider
-          <select
-            aria-label="Provider filter"
-            value={filters.provider}
-            onChange={(e) => update('provider', e.target.value)}
-          >
-            <option value="">All providers</option>
-            {Array.from(new Set(options.data?.items.map((item) => item.provider))).map((item) => (
-              <option key={item}>{item}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Model
-          <select
-            aria-label="Model filter"
-            value={filters.model}
-            onChange={(e) => update('model', e.target.value)}
-          >
-            <option value="">All models</option>
-            {options.data?.items
-              .filter((item) => !filters.provider || item.provider === filters.provider)
-              .map((item) => (
-                <option key={`${item.provider}/${item.model}`} value={item.model}>
-                  {item.model}
-                </option>
-              ))}
-          </select>
-        </label>
+        {manualFilters ? (
+          <form className="manual-filters" onSubmit={applyExactFilters}>
+            <label>
+              Provider
+              <input
+                name="provider"
+                aria-label="Provider filter"
+                defaultValue={filters.provider}
+                maxLength={120}
+                placeholder="Exact provider, or leave blank"
+              />
+            </label>
+            <label>
+              Model
+              <input
+                name="model"
+                aria-label="Model filter"
+                defaultValue={filters.model}
+                maxLength={120}
+                placeholder="Exact model, or leave blank"
+              />
+            </label>
+            <button type="submit">Apply exact filters</button>
+          </form>
+        ) : (
+          <>
+            <label>
+              Provider
+              <select
+                aria-label="Provider filter"
+                value={filters.provider}
+                onChange={(e) => update('provider', e.target.value)}
+              >
+                <option value="">All providers</option>
+                {Array.from(new Set(options.data?.items.map((item) => item.provider))).map(
+                  (item) => (
+                    <option key={item}>{item}</option>
+                  ),
+                )}
+              </select>
+            </label>
+            <label>
+              Model
+              <select
+                aria-label="Model filter"
+                value={filters.model}
+                onChange={(e) => update('model', e.target.value)}
+              >
+                <option value="">All models</option>
+                {options.data?.items
+                  .filter((item) => !filters.provider || item.provider === filters.provider)
+                  .map((item) => (
+                    <option key={`${item.provider}/${item.model}`} value={item.model}>
+                      {item.model}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          </>
+        )}
         <label>
           Status
           <select
@@ -188,7 +237,14 @@ function TraceExplorer() {
           <button onClick={() => update('traceId', '')}>Clear trace search</button>
         )}
       </div>
-      {options.error && <Failure error={options.error} retry={() => void options.refetch()} />}{' '}
+      {manualFilters ? (
+        <p className="notice small" role="status">
+          The model summary exceeds this bounded analytics window. Exact provider/model filters
+          still work; narrow the time range to restore suggestions.
+        </p>
+      ) : (
+        options.error && <Failure error={options.error} retry={() => void options.refetch()} />
+      )}{' '}
       {result.error ? (
         <Failure error={result.error} retry={() => void result.refetch()} />
       ) : result.isPending ? (
@@ -312,14 +368,71 @@ export function TraceDetail({ traceId }: { traceId: string }) {
           </div>
         ))}
       </dl>
+      {trace.pricing && (
+        <section className="pricing-provenance" aria-label="Pricing provenance">
+          <div className="section-heading">
+            <h2>Pricing provenance</h2>
+            <span className="muted small">
+              {trace.pricing.simulated ? 'Simulated pricing' : 'Versioned pricing registry'}
+            </span>
+          </div>
+          <dl className="detail-grid">
+            {[
+              ['Version', trace.pricing.version],
+              ['Currency', trace.pricing.currency],
+              ['Input / million tokens', cost(trace.pricing.inputNanoUsdPerMillion)],
+              ['Output / million tokens', cost(trace.pricing.outputNanoUsdPerMillion)],
+              ['Effective from', utc(trace.pricing.effectiveFrom)],
+              [
+                'Effective to',
+                trace.pricing.effectiveTo ? utc(trace.pricing.effectiveTo) : 'Open-ended',
+              ],
+              [
+                'Verified at',
+                trace.pricing.verifiedAt
+                  ? utc(trace.pricing.verifiedAt)
+                  : 'Not independently verified',
+              ],
+              ['Billing basis', trace.pricing.billingBasis ?? 'Token usage estimate'],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="footnote">
+            {pricingSource(trace.pricing.sourceUrl) ? (
+              <a href={pricingSource(trace.pricing.sourceUrl)} target="_blank" rel="noreferrer">
+                Pricing source <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            ) : (
+              'No safe source link available.'
+            )}{' '}
+            Historical version used for this operation. Estimates are not provider bills.
+            {trace.pricing.simulated ? ' These rates are fictional demo data.' : ''}
+          </p>
+        </section>
+      )}
       {trace.status === 'error' && (
         <section className="notice error">
           <div>
             <h2>Error category: {trace.errorType ?? 'unknown'}</h2>
+            {trace.errorSummary && (
+              <p className="error-summary" data-testid="error-summary">
+                {trace.errorSummary}
+              </p>
+            )}
             <p>
               Raw application errors are not collected. Use the trace ID to correlate with your own
               secure logs.
             </p>
+            {trace.errorSummary && (
+              <p className="small">
+                Capture policy: explicit-summary-v1 · Application-supplied summary, with best-effort
+                redaction. Sanitization cannot guarantee the absence of all personal information.
+              </p>
+            )}
           </div>
         </section>
       )}

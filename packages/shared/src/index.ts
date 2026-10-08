@@ -1,10 +1,30 @@
 import { z } from 'zod';
+import { errorSummarySchema } from './error-summary';
+export {
+  ERROR_CAPTURE_POLICY,
+  MAX_ERROR_SUMMARY_CHARS,
+  MAX_ERROR_SUMMARY_BYTES,
+  errorSummarySchema,
+  sanitizeErrorSummary,
+} from './error-summary';
 export const MAX_BATCH_SIZE = 50;
 export const MAX_PAYLOAD_BYTES = 256 * 1024;
 export const MAX_METADATA_BYTES = 8 * 1024;
 export const MAX_WINDOW_MS = 31 * 24 * 60 * 60 * 1000;
 const label = z.string().trim().min(1).max(120);
 const timestamp = z.iso.datetime();
+const utcTimestampParts = (value: string) => {
+  const [whole, fraction = ''] = value.slice(0, -1).split('.');
+  return { second: Date.parse(`${whole}Z`), fraction };
+};
+const timestampsOrdered = (startedAt: string, endedAt: string): boolean => {
+  const start = utcTimestampParts(startedAt);
+  const end = utcTimestampParts(endedAt);
+  if (start.second !== end.second) return start.second < end.second;
+  // Date.parse truncates sub-millisecond digits; compare exact decimal fractions before normalization.
+  const precision = Math.max(start.fraction.length, end.fraction.length);
+  return start.fraction.padEnd(precision, '0') <= end.fraction.padEnd(precision, '0');
+};
 const tokenCount = z.number().int().min(0).max(10_000_000);
 export const usageSchema = z.object({ inputTokens: tokenCount, outputTokens: tokenCount }).strict();
 export const metadataSchema = z
@@ -33,11 +53,15 @@ export const traceEventSchema = z
     inputTokens: tokenCount.optional(),
     outputTokens: tokenCount.optional(),
     errorType: z.enum(['timeout', 'rate_limit', 'network', 'application', 'unknown']).optional(),
+    errorSummary: errorSummarySchema.optional(),
     metadata: metadataSchema.optional(),
   })
   .strict()
-  .refine((event) => Date.parse(event.endedAt) >= Date.parse(event.startedAt), {
+  .refine((event) => timestampsOrdered(event.startedAt, event.endedAt), {
     message: 'End timestamp must not precede start',
+  })
+  .refine((event) => event.errorSummary === undefined || event.status === 'error', {
+    message: 'An explicit error summary is only permitted on failed operations',
   });
 export const batchSchema = z
   .object({ events: z.array(traceEventSchema).min(1).max(MAX_BATCH_SIZE) })
@@ -66,7 +90,44 @@ export interface Trace extends TraceEvent {
   estimatedCostNanoUsd: string | null;
   pricingVersion: string | null;
   createdAt: string;
+  pricing?: PricingProvenance;
 }
+export interface PricingProvenance {
+  version: string;
+  provider: string;
+  model: string;
+  currency: string;
+  inputNanoUsdPerMillion: string;
+  outputNanoUsdPerMillion: string;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  sourceUrl: string;
+  simulated: boolean;
+  verifiedAt: string | null;
+  billingBasis: string | null;
+}
+export const pricingProvenanceSchema = z
+  .object({
+    version: z.string().min(1).max(120),
+    provider: label,
+    model: label,
+    currency: z.string().min(1).max(10),
+    inputNanoUsdPerMillion: z.string().regex(/^\d{1,20}$/),
+    outputNanoUsdPerMillion: z.string().regex(/^\d{1,20}$/),
+    effectiveFrom: timestamp,
+    effectiveTo: timestamp.nullable(),
+    sourceUrl: z
+      .url()
+      .max(2048)
+      .refine((value) => {
+        const url = new URL(value);
+        return url.protocol === 'https:' && !url.username && !url.password;
+      }),
+    simulated: z.boolean(),
+    verifiedAt: timestamp.nullable(),
+    billingBasis: z.string().max(100).nullable(),
+  })
+  .strict();
 export interface Overview {
   totalRequests: number;
   successfulRequests: number;
