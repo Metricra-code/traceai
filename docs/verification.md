@@ -35,6 +35,20 @@ at two after Refresh. Scoped query invalidation fixes it; all three E2E modes no
 custom-query URL refetches and the count becomes three. Secure scrypt parameters remain unchanged;
 the four-KDF private-DO integration case has a focused 20s local test allowance, not a production SLA.
 
+## CI lifecycle isolation
+
+The [first complete-MVP CI run](https://github.com/Metricra-code/traceai/actions/runs/37830070309)
+passed unit/integration/build and Next-dev E2E, but its following workerd suite received proxy 503s
+while direct API health stayed 200. Installed Miniflare refuses to replace another instance's fresh
+registry definition for 90 seconds; Playwright's default process-group SIGKILL bypasses cleanup.
+The resulting stale RPC discovery explains why a fresh standalone workerd run could pass.
+
+Each managed E2E invocation now gets a unique `WRANGLER_REGISTRY_PATH`, shared by its API/web children.
+No global registry deletion, added retries, weakened assertions or production fallback is used.
+The exact `CI=1` Next-dev → built-workerd sequence subsequently passed seven cases in each mode;
+the workerd run completed in 11.9s. Remote confirmation remains a separate gate.
+[Playwright process lifecycle](https://playwright.dev/docs/test-webserver).
+
 ## Deployment regression and compatibility pin
 
 The first published frontend failed dynamic requests with

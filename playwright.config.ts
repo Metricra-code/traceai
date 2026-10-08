@@ -1,4 +1,7 @@
 import { defineConfig } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 const remote = process.env.TRACEAI_E2E_BASE_URL;
 export default defineConfig({
   testDir: './e2e',
@@ -14,6 +17,8 @@ export default defineConfig({
           ? 'bunx --no-install concurrently -k -n api,web "bun run --filter @traceai/api dev" "bun run --filter @traceai/web preview:built"'
           : 'bun run dev',
         url: 'http://localhost:3000',
+        // Force-killed servers leave fresh registry entries; both children share a new namespace.
+        env: { WRANGLER_REGISTRY_PATH: join(tmpdir(), `traceai-e2e-${randomUUID()}`) },
         reuseExistingServer: !process.env.CI && !process.env.TRACEAI_E2E_WORKERS,
         timeout: 120_000,
       },
