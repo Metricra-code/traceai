@@ -7,29 +7,36 @@ Local checks, live runtime, measurements and remote CI are distinct kinds of evi
 
 ## Current verified release
 
-| Check                               | Actual result                                                                                                                                                |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Frozen installation                 | `bun install --frozen-lockfile` passed; 655 installs / 856 packages, no lock changes                                                                         |
-| Format / lint / strict TypeScript   | Whole-workspace checks passed; root scripts/E2E and all eight workspace typecheck commands included                                                          |
-| Unit tests                          | **168/168**, 14 files, **2.16s**; SDK 72 + real OTel 22, analytics/money/contracts/sanitizer/registry and migration compatibility                            |
-| Actual Worker/D1 integration        | **73/73**, five files, **9.91s**; real migrations, auth/tenant/key/ingestion/analytics/pricing/cleanup/rollback                                              |
-| Workspace production build          | SDK/shared/database declarations, optional exporter, Next and API Worker dry-run passed                                                                      |
-| OpenNext build                      | Next16.3.8 / OpenNext1.20.9 compiled and bundled successfully; no node_modules patch                                                                         |
-| Isolated public-package consumers   | Bun1.4.0 and Node22.22.0 runtime, strict public types with skipLibCheck=false, licenses/README and no private workspace runtime reference passed             |
-| Native Bun Next E2E                 | **17/17**, **1.6m**, with CI=1 and no retries                                                                                                                |
-| Built OpenNext / actual workerd E2E | **17/17**, **42.2s**, after the native suite, with an isolated registry namespace                                                                            |
-| Live HTTPS E2E                      | **17/17**, **55.8s**, against the deployed web/API                                                                                                           |
-| Real SDK + OTel → Worker → D1       | Three stored operations; original result/error identity, genuine span IDs, safe summary, priced subtotal, dedup/revocation/cleanup passed                    |
-| Remote migration / registry         | Reviewed additive `0002` applied; columns, all three guards and migration record queried; two officially sourced snapshots explicitly imported and read back |
-| Demo / screenshot                   | Existing 10,000-row simulated demo retained without remote reseeding; current loaded 30-day dashboard screenshot captured                                    |
-| Secret / scope review               | Tracked/new source, static bundles and public tarball contents reviewed; no real credentials, broad permissions or raw-error default capture found           |
-| Published-source GitHub Actions     | **Pending publication/run for this expanded release.** Earlier green runs are not substituted for this gate                                                  |
+| Check                               | Actual result                                                                                                                                                                  |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Frozen installation                 | `bun install --frozen-lockfile` passed; 655 installs / 856 packages, no lock changes                                                                                           |
+| Format / lint / strict TypeScript   | Whole-workspace checks passed; root scripts/E2E and all eight workspace typecheck commands included                                                                            |
+| Unit tests                          | **168/168**, 14 files, **2.16s**; SDK 72 + real OTel 22, analytics/money/contracts/sanitizer/registry and migration compatibility                                              |
+| Actual Worker/D1 integration        | **73/73**, five files, **9.91s**; real migrations, auth/tenant/key/ingestion/analytics/pricing/cleanup/rollback                                                                |
+| Workspace production build          | SDK/shared/database declarations, optional exporter, Next and API Worker dry-run passed                                                                                        |
+| OpenNext build                      | Next16.3.8 / OpenNext1.20.9 compiled and bundled successfully; no node_modules patch                                                                                           |
+| Isolated public-package consumers   | Bun1.4.0 and Node22.22.0 runtime, strict public types with skipLibCheck=false, licenses/README and no private workspace runtime reference passed                               |
+| Native Bun Next E2E                 | **17/17**, **1.6m**, with CI=1 and no retries                                                                                                                                  |
+| Built OpenNext / actual workerd E2E | **17/17**, **42.2s**, after the native suite, with an isolated registry namespace                                                                                              |
+| Live HTTPS E2E                      | **17/17**, **55.8s**, against the deployed web/API                                                                                                                             |
+| Real SDK + OTel → Worker → D1       | Three stored operations; original result/error identity, genuine span IDs, safe summary, priced subtotal, dedup/revocation/cleanup passed                                      |
+| Remote migration / registry         | Reviewed additive `0002` applied; columns, all three guards and migration record queried; two officially sourced snapshots explicitly imported and read back                   |
+| Demo / screenshot                   | Existing 10,000-row simulated demo retained without remote reseeding; current loaded 30-day dashboard screenshot captured                                                      |
+| Secret / scope review               | Tracked/new source, static bundles and public tarball contents reviewed; no real credentials, broad permissions or raw-error default capture found                             |
+| Published-source GitHub Actions     | **Passed** for full-product source `70dd1a9`; [actual run](https://github.com/Metricra-code/traceai/actions/runs/37840304644), verify job **4m31s**, all required checks green |
 
 The runtime versions are API **`8171f54a-127c-4982-b378-161868735bcc`** and web
 **`1305011c-4719-4f64-99c6-a347dfbc6459`**. [Live demo](https://traceai-web.traceai-api.workers.dev/demo),
 [API health](https://traceai-api.traceai-api.workers.dev/health). The [acceptance ledger](acceptance.md)
-tracks all original requirements and the remaining publication gate; source implementation alone
-is not a completed release.
+tracks all original requirements and the completed release gates. Runtime source revision is
+[`70dd1a97f82beb57d381358aa6aa12a07974aa26`](https://github.com/Metricra-code/traceai/commit/70dd1a97f82beb57d381358aa6aa12a07974aa26).
+The evidence-documentation follow-up does not change deployed runtime source. No earlier baseline
+CI, health-only check or generated test file is substituted for the actual full-product verification.
+
+The published-source Actions run used Ubuntu24.04, Bun1.4.0 and Node22.23.3. It passed all168 unit
+and73 actual Worker/D1 cases, both packed consumers, native17/17 (**1.6m**) and built-workerd17/17
+(**39.8s**). The table's local suite timings and Node22.22.0 are retained as separate observations;
+CI does not deploy or run the production HTTPS suite.
 
 ## What the browser evidence actually covers
 

@@ -66,7 +66,7 @@ local and deployed evidence in [verification](verification.md), not merely the e
 | 24  | Cloudflare setup documented         | Explicit migration/import/API→web rollout and version/rollback evidence         |
 
 Detailed §9/§10/§12 gaps were resolved rather than dismissed by these broad checks. Publication CI and
-final reconciliation remain separate release gates below until their actual run/commit is recorded.
+final reconciliation are recorded separately below; the published expanded-source run passed.
 
 ## Post-first-version integration and operational depth
 
@@ -77,7 +77,7 @@ final reconciliation remain separate release gates below until their actual run/
 - [x] No automatic copying of arbitrary span attributes, prompt/response events, exception messages,
       headers or resource identity. Collector/OTLP, metrics and log storage are not claimed.
 - [x] Concurrent SDK workload evidence and isolated packed-package Node/Bun consumers locally verified;
-      the consumer check is configured in CI, with the publication run tracked separately below.
+      the consumer check also passed in the published-source CI recorded below.
 - [x] Bounded expired session/rate-counter maintenance, safe job counts and quota/retention policy.
       User traces are never silently deleted by maintenance.
 - [x] Browser timing and automated AA/keyboard/responsive checks with stated measurement scope.
@@ -94,7 +94,8 @@ required a collector, teams, Stripe, evaluation pipeline or a fake distributed t
 - [x] Expanded native Next and built-workerd browser suites pass without retries or weakened assertions.
 - [x] Safe additive migrations and real-price import applied to the authorized Cloudflare account.
 - [x] Current API/web deployed; live product/security/SDK/OTel smoke and browser journeys pass.
-- [ ] Actual GitHub Actions run for the published source passes.
-- [ ] Architecture/README/API/SDK/deployment/troubleshooting/verification reflect actual features,
+- [x] Actual GitHub Actions for published full-product source `70dd1a9` [passed](https://github.com/Metricra-code/traceai/actions/runs/37840304644).
+- [x] Architecture/README/API/SDK/deployment/troubleshooting/verification reflect actual features,
       measurements, release IDs and remaining operational limits.
-- [ ] Final source/secret/scope review; no remaining required work.
+- [x] Final source/secret/scope review; original requirements and optional exporter complete,
+      with operational and measurement limits explicitly retained.

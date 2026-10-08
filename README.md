@@ -14,8 +14,9 @@ and project-scoped analytics on Cloudflare Workers/D1. No paid AI credentials ar
 Verified locally and live: **168 unit tests**, **73 actual Worker/D1 integration cases**, and
 **17 Playwright journeys in each of native Next, built-workerd and deployed HTTPS modes**.
 The live SDK + genuine OpenTelemetry → Worker → D1 smoke also verifies sourced pricing, privacy,
-deduplication and revoked keys. Current publication CI is a separate pending release gate;
-see [verification](docs/verification.md) and the workflow badge, not build success alone.
+deduplication and revoked keys. The [published full-product source CI](https://github.com/Metricra-code/traceai/actions/runs/37840304644)
+passed for `70dd1a9`, including both local browser runtimes and isolated Bun/Node package consumers.
+See [verification](docs/verification.md) for the evidence and limits, not build success alone.
 
 ## What to explore
 
@@ -34,7 +35,7 @@ see [verification](docs/verification.md) and the workflow badge, not build succe
 - **Optional OpenTelemetry:** genuine GenAI `SpanExporter` with actual span IDs/timing, privacy
   allowlist and honest delivery lifecycle. [Free real-provider example](docs/opentelemetry.md).
 - **Engineering evidence:** architecture diagram, strict TypeScript, Vitest, actual Worker/D1 integration,
-  Playwright journeys and GitHub Actions. [Evidence and outstanding checks](docs/verification.md).
+  Playwright journeys and GitHub Actions. [Evidence and measurement limits](docs/verification.md).
 
 ## Run locally
 

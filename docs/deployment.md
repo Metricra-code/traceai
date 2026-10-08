@@ -85,7 +85,8 @@ changes. Migration `0002` is additive; do not drop its columns/guards to roll ba
   null, exact sourced-price subtotal/provenance, explicit summary redaction, replay, revocation and cleanup.
 - **17/17 live browser journeys passed**, including keyboard/mobile/light/dark/AA checks and real management.
   Native17/17 and built-workerd17/17 passed too. [Full evidence and performance](verification.md).
-- Expanded-source GitHub Actions remains a publication gate until the actual new run passes.
+- Expanded-source `70dd1a9` [GitHub Actions passed](https://github.com/Metricra-code/traceai/actions/runs/37840304644):
+  frozen install, static checks, unit/D1 tests, production/OpenNext builds, packed consumers and both browser runtimes.
 - The earlier Next16.4 build failed at runtime on `preview-props.json`. Verified Next16.3.8 pin fixes
   that compatibility issue without node_modules patching; keep actual-workerd CI. [Upstream fix](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356).
 

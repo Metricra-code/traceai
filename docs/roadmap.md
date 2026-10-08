@@ -3,7 +3,7 @@
 The goal is the **full original product**, not a reduced MVP. Requirements remain unchanged in
 [product-spec.md](product-spec.md); [acceptance.md](acceptance.md) is the section-by-section ledger.
 A checked implementation item below means source exists with corresponding tests/documentation,
-**not** that the expanded release has passed current CI or live deployment verification.
+**not by itself** a claim of passing CI or live deployment verification; those actual results are recorded below.
 
 ## Implemented product scope
 
@@ -46,7 +46,7 @@ A checked implementation item below means source exists with corresponding tests
 
 The SDK/adapter's focused tests, typechecks, builds and packed consumers have local passing evidence
 in [SDK](sdk.md) and [OpenTelemetry](opentelemetry.md). The expanded whole-product local and live
-results are recorded in [verification](verification.md); published-source CI remains a separate gate.
+results are recorded in [verification](verification.md), alongside the separate passing published-source CI.
 
 ## Expanded-release gates
 
@@ -59,8 +59,9 @@ Current recorded results are in [verification](verification.md) and the detailed
 - [x] Authorized additive migration and real-price import; private backup and prior Worker IDs retained.
 - [x] Current API/web deployed; three real SDK/OTel operations, exact price/privacy/key checks,
       and17 live-browser journeys passed. No remote demo reseed.
-- [ ] Actual GitHub Actions for the published expanded source; earlier baseline CI is not substituted.
-- [ ] Final documentation/secret/scope reconciliation after that run; no remaining required work.
+- [x] Actual [GitHub Actions](https://github.com/Metricra-code/traceai/actions/runs/37840304644) passed
+      for expanded runtime source `70dd1a9`; earlier baseline CI is not substituted.
+- [x] Final documentation/secret/scope reconciliation after that run; no remaining required product work.
 
 Next remains pinned to **16.3.8** until a compatible adapter release passes actual workerd dynamic routes.
 Source implementation, locally green checks, a deployed health route and a passing published-source CI
