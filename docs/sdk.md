@@ -11,8 +11,8 @@ From the repository root:
 ```sh
 bun install
 bun run --filter @traceai/sdk build
-# Start the API and provision the local-only project/key using docs/api.md.
-# Dashboard project/key management is a later milestone.
+# Start the apps with `bun run dev`, create an account/project, then generate a key in Settings.
+# For the deployed API, use the same workflow at the live site's /register page.
 TRACEAI_API_KEY='<new-key>' TRACEAI_ENDPOINT='http://localhost:8787' bun run demo:node
 ```
 

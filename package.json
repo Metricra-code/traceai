@@ -16,6 +16,8 @@
     "test": "vitest run",
     "test:integration": "bun run --filter @traceai/api test:integration",
     "test:e2e": "playwright test",
+    "test:e2e:workers": "TRACEAI_E2E_WORKERS=1 playwright test",
+    "verify:deployment": "bun scripts/verify-deployment.ts",
     "build": "bun run --filter \"@traceai/*\" build",
     "db:migrate": "bun run --filter @traceai/api db:migrate",
     "db:seed": "bun packages/database/src/seed.ts && bun scripts/seed-local.ts",

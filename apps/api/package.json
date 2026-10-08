@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.1.0",
   "scripts": {
-    "dev": "bunx --no-install wrangler dev --port 8787",
+    "dev": "bunx --no-install wrangler dev --port 8787 --var ENVIRONMENT:development --var WEB_ORIGIN:http://localhost:3000",
     "typecheck": "bunx --no-install tsc --noEmit",
     "build": "bunx --no-install wrangler deploy --dry-run --outdir dist",
     "db:migrate": "bunx --no-install wrangler d1 migrations apply traceai-db --local",

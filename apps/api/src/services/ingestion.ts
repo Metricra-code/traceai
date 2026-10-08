@@ -37,7 +37,13 @@ export async function ingestBatch(
       'invalid_batch',
       'Every event must satisfy the trace schema; the batch must contain 1–50 events.',
     );
-  const uniqueEvents = parsed.data.events.filter(
+  // Indexed analytics and pricing must see the same fixed-millisecond UTC representation.
+  const normalizedEvents = parsed.data.events.map((event) => ({
+    ...event,
+    startedAt: new Date(event.startedAt).toISOString(),
+    endedAt: new Date(event.endedAt).toISOString(),
+  }));
+  const uniqueEvents = normalizedEvents.filter(
     (event, index, all) =>
       all.findIndex((candidate) => candidate.traceId === event.traceId) === index,
   );

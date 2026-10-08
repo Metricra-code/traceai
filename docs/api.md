@@ -1,77 +1,149 @@
-# Ingestion API — implemented slice
+# HTTP API
 
-`apps/api` is a Hono Worker with a D1 binding. This slice implements health and real ingestion; management authentication, analytics endpoints and the dashboard are not yet implemented. The public demo data and its simulated prices are separate from real ingestion.
+Hono on Cloudflare Workers, with D1 persistence. Browser management calls go through Next's same-origin
+`/api/*` proxy to `/v1/*`; production uses a service binding. Raw ingestion keys are server-side credentials,
+not dashboard session credentials. All inputs are validated and queries are parameterized.
 
-## Endpoints
+Production API: **https://traceai-api.traceai-api.workers.dev**.
+[Live health check](https://traceai-api.traceai-api.workers.dev/health) and
+[read-only demo metadata](https://traceai-api.traceai-api.workers.dev/v1/demo) require no account.
 
-- `GET /health`: executes `SELECT 1` against D1, then returns the service status. A failed database operation returns a generic error, not a false healthy response.
-- `POST /v1/events/batch`: `Authorization: Bearer tai_<32-hex-key-id>_<64-hex-secret>` and `Content-Type: application/json`.
+## Authentication and management
+
+| Method/path                                    | Response / requirement                                         |
+| ---------------------------------------------- | -------------------------------------------------------------- |
+| `GET /health`                                  | Real `SELECT 1` D1 connection check                            |
+| `POST /v1/auth/register`                       | `{ user }`, 201; validated email/password, Origin required     |
+| `POST /v1/auth/login`                          | `{ user }`; new session, Origin required                       |
+| `GET /v1/auth/session`                         | `{ user }`; valid session required                             |
+| `POST /v1/auth/logout`                         | 204; Origin required, session invalidated                      |
+| `GET /v1/projects`                             | `{ items: Project[] }`; only owned projects                    |
+| `POST /v1/projects`                            | `Project`, 201; name/description schema                        |
+| `GET /v1/projects/:id`                         | `Project`; ownership required                                  |
+| `PATCH /v1/projects/:id`                       | `Project`; nonempty validated partial name/description         |
+| `DELETE /v1/projects/:id`                      | 204; `{ confirmName: "current name" }` required                |
+| `GET /v1/projects/:id/api-keys`                | `{ items: ApiKey[], historyLimit: 100 }`; newest metadata only |
+| `POST /v1/projects/:id/api-keys`               | `{ apiKey, key }`, 201; raw key shown once                     |
+| `DELETE /v1/projects/:id/api-keys/:keyId`      | 204; immediately revokes ingestion access                      |
+| `POST /v1/projects/:id/api-keys/:keyId/rotate` | `{ apiKey, key }`, 201; old key revoked atomically             |
+
+All project/key reads and mutations check ownership. A missing or foreign resource has the same 404;
+no session returns 401. Cookie mutations require exact `Origin === WEB_ORIGIN`. Sessions expire after
+seven days, use hashed-at-rest random tokens, and set HttpOnly/SameSite cookies (Secure in production).
+Keys use an independent random 256-bit secret and salt; lists never return the raw value or hash.
+Management is bounded to 100 owned projects and 20 active keys/project; exceeding these caps returns
+409 `resource_limit`. Key history returns the newest 100 records, with `historyLimit` in the response.
+Revoked older records remain in storage and can never authenticate ingestion.
+
+Passwords are hashed/verified using native scrypt in a **private SQLite-backed Durable Object**, not
+low-round edge PBKDF2. Fixed `N=32768,r=8,p=3` matches [OWASP's 32 MiB scrypt profile](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#scrypt).
+The DO uses the larger default CPU allowance; only salted digests are stored in D1. Rate limiting runs
+before expensive hashing. IP counters allow 20 attempts/minute; email counters allow 10/15 minutes.
+See [architecture](architecture.md) and [deployment](deployment.md) for runtime limits and security scope.
+
+## Ingestion
+
+`POST /v1/events/batch` requires `Authorization: Bearer tai_<32-hex-id>_<64-hex-secret>` and JSON:
 
 ```json
 {
   "events": [
     {
-      "traceId": "stable-id-generated-once",
-      "name": "chat.completion",
+      "traceId": "stable-generated-once",
+      "name": "chat-completion",
       "provider": "your-provider",
-      "model": "exact-model-id",
+      "model": "your-model-id",
       "status": "success",
       "startedAt": "2026-10-09T00:00:00.000Z",
       "endedAt": "2026-10-09T00:00:00.123Z",
       "durationMs": 123,
       "inputTokens": 100,
       "outputTokens": 20,
-      "metadata": { "environment": "local" }
+      "metadata": { "feature": "assistant" }
     }
   ]
 }
 ```
 
-Successful requests return HTTP `202` and `{ "accepted": 1, "duplicates": 0 }`. `accepted` counts new persisted rows; `duplicates` includes retries and repeated IDs within the batch. The **first** event for `(project_id, trace_id)` wins; later duplicates cannot replace its model, usage, pricing or metadata. A replay returns `accepted: 0`, `duplicates: 1`.
+Success is HTTP 202, `{ "accepted": 1, "duplicates": 0 }`. Entire batches validate atomically:
+1–50 events, 256 KiB streamed UTF-8 body, 8 KiB scalar metadata/event, valid UTC timestamps,
+nonnegative bounded duration/token counts and category-only errors. Compressed bodies and extra fields,
+including raw error messages or caller-supplied project IDs, are rejected.
 
-The shared strict Zod schema validates the entire batch before any trace is written. A batch contains **1–50** events. Bodies are streamed into a bounded buffer, capped at **256 KiB**, even without `Content-Length`. Compressed bodies are rejected rather than bypassing the decompressed size limit. Metadata is capped at **8 KiB/event**. Arbitrary raw error messages and prompts are not accepted; applications should keep sensitive data out of metadata.
+Project scope comes only from the authenticated key. First `(project_id,trace_id)` wins, including
+repeated IDs in one batch; retries cannot replace original usage/model/pricing/metadata. D1 transactional
+inserts roll back all rows if a later statement fails. Five-row chunks respect bind limits; a full batch
+uses bounded queries, not an N+1 pricing lookup. A fixed atomic per-key limit allows 120 requests/UTC minute;
+429 returns Retry-After. Invalid authenticated requests count toward the limit.
 
-Project scope derives only from the validated key's database record. Client-supplied project IDs are rejected. Revoked keys and malformed credentials receive the same generic `401`. Keys contain a cryptographically random 256-bit secret, a separate random ID and salt; only a domain-separated salted SHA-256 hash is persisted. Hash comparisons use `node:crypto`'s constant-time primitive. This fast hash is safe for random high-entropy keys, **not passwords**.
+Pricing matches exact provider/model and effective versions, never simulated records. Both usage counts
+must be present (including explicit zero). Missing/unknown/unsafe pricing is null. Calculation rounds
+once to integer nanodollars; historical version identity is retained. No real prices are fabricated.
 
-## Cost semantics
+## Analytics and public demo
 
-Pricing uses an exact `(provider, model)` match effective at `startedAt`, with version identity saved on the trace. Only real, non-simulated USD pricing versions are eligible. Both usage values must be explicitly present, including zero. Unknown models, missing usage, invalid pricing or unsafe-integer estimates produce `null`, never zero. Monetary calculation uses `BigInt`, rounds half-up once to integer nanodollars, and persists only integers within `Number.MAX_SAFE_INTEGER`. Analytics will serialize these values as decimal strings.
+Private endpoints require session + project ownership:
 
-No real model prices are fabricated by this slice. The bootstrap does not create pricing records. The simulated demo price registry is explicitly excluded from real ingestion.
-
-## Atomicity and free-tier query bounds
-
-D1 `batch()` inserts in one transaction; any statement failure rolls back every trace and the last-used timestamp. Trace inserts contain five rows per statement, keeping even fully populated events below D1's 100 bind-parameter ceiling. A 50-event request uses ten insert statements, one timestamp update, one pricing query, one authentication query and one rate-limit update: **14 queries**, below the Workers Free per-invocation limit of 50. Pricing lookup uses one parameterized JSON input rather than a query per event.
-
-An atomic D1 upsert limits authenticated keys to **120 requests per UTC minute**. Counters use one stable row per key, with an expiry that resets the counter; no per-minute rows accumulate. Invalid authenticated requests count toward the limit. `429` includes `Retry-After` in seconds. A fixed-minute window allows a boundary burst and is not a distributed token bucket. Rate-limiter/database writes consume D1 quota; deployment still needs capacity monitoring.
-
-## Local-only bootstrap
-
-From the repository root:
-
-```bash
-bun run db:migrate
-bun run examples/local-project/create.ts --local-only
-bun run --filter @traceai/api db:bootstrap
+```text
+GET /v1/projects/:id/overview          → Overview
+GET /v1/projects/:id/metrics           → { items: MetricBucket[], bucket: "hour" | "day" }
+GET /v1/projects/:id/models            → { items: ModelComparison[] }
+GET /v1/projects/:id/traces            → { items: Trace[], nextCursor: string | null }
+GET /v1/projects/:id/traces/:traceId    → Trace
 ```
 
-The bootstrap creates a **real local project** with a disabled, local-only owner identity, not a public demo key or a usable password. It writes `.local/bootstrap.sql` containing only the salted key hash and `.local/ingestion.env` containing the one-time raw key. The ignored files use `0600` permissions; the directory uses `0700`. The secret is never printed. Exclusive file creation prevents silently overwriting existing secrets. Do not copy either bootstrap file to a public artifact or production database.
+Public GET `/v1/demo` returns `{ project, anchor, simulated: true }` for fixed project `demo`.
+The same `/overview`, `/metrics`, `/models`, `/traces`, `/traces/:traceId` suffixes expose only that
+simulated project. There are no public demo mutations, key generation or arbitrary project selection.
+Missing seed data returns 404 `demo_not_available`, not fabricated metrics.
 
-To use the key privately in your current terminal:
+### Query contract
 
-```bash
-set -a
-source .local/ingestion.env
-set +a
-bun run --filter @traceai/api dev
-```
+| Parameter           | Rule                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| `from`, `to`        | Both UTC ISO strings ending in `Z`, or both omitted; canonicalized to milliseconds |
+| Window              | `[from,to)`, strictly increasing, at most 31 days                                  |
+| `provider`, `model` | Optional exact labels, max 120 chars                                               |
+| `status`            | Optional `success` or `error`                                                      |
+| `traceId`           | Optional exact ASCII identifier; not substring search                              |
+| `limit`             | Trace list only; integer 1–100, default 50 (UI uses 25)                            |
+| `sort`              | Trace list only; `newest` default or `oldest`                                      |
+| `cursor`            | Trace list only; versioned URL-safe keyset cursor                                  |
 
-Use a separate terminal for the SDK example. The `--local-only` bootstrap does not enable production signup, account management, session authentication or API-key lifecycle management. Never run its SQL without `--local`.
+Duplicate/unknown parameters, malformed cursors and invalid ranges return safe 400 errors. Detail and
+demo metadata endpoints accept no query parameters. Omitted dates mean 24 hours ending at now for private
+projects, or actual demo anchor +1ms. A cursor retains the original default range, avoiding page drift.
 
-## Error contract
+All SQL reads are project scoped/indexed. Aggregation selects at most 20,001 narrow candidates;
+**more than 20,000 matches returns 422 `analytics_window_too_large`** and asks for a narrower window/filter.
+No silent truncation. Trace pagination itself remains available on larger windows within the date bound.
 
-Errors have `{ "error": { "code": "...", "message": "..." } }`. Statuses: `400` invalid JSON/schema, `401` invalid key, `413` oversized body, `415` unsupported content type/encoding, `429` rate limit, `500` generic internal failure. All responses use `Cache-Control: no-store`, `X-Content-Type-Options: nosniff` and a generated `X-Request-Id`. Internal logs record only a category and correlation ID, never raw exceptions, SQL values, bodies or authorization headers.
+P50/P95/P99 use nearest rank, `ceil(p × n)`. Metrics adapt to hour buckets through seven days and daily
+buckets for longer windows, zero filling UTC gaps (at most 744 points). Empty overview percentiles are
+zero; the UI shows missing-observation latency gaps rather than implying zero-time operations.
+Model comparisons measure operational speed/reliability/usage, **not quality or accuracy**.
 
-## Verification
+Costs are authoritative decimal **nanodollar strings**, not JSON floating-point money. Sums use BigInt,
+including totals beyond JS safe integers. If any row is unpriced, the total remains null with
+`pricedRequests`/`unpricedRequests`. `knownEstimatedCostNanoUsd` is the exact subtotal of priced
+requests only, **not the grand total**; it is null when a nonempty set has no priced requests. The UI
+labels the chart as priced-request cost and explicitly notes that unknown requests are excluded. An empty dataset has zero counts and
+both cost fields `"0"`.
 
-`bun run test` covers portable cryptography and integer pricing. `bun run test:integration` runs inside actual workerd using `@cloudflare/vitest-plugin`, with real local D1 migrations reapplied for every test and no remote bindings. It covers authentication/revocation, project isolation, idempotency, full-batch validation, streaming limits, effective real-only pricing, 50-event inserts, transaction rollback and rate-limit atomicity. Passing local tests does not prove deployed Workers Free CPU suitability; live deployment checks remain required.
+Pagination orders by `(started_at, trace_id)` in the selected direction, handling timestamp ties.
+Cursors bind project/window/filters/sort; changing filters must reset pagination. They are not credentials
+or snapshot-isolation guarantees when late ingestion changes a window. Trace APIs never select legacy
+raw `error_message`; only sanitized categories and explicit metadata are returned.
+
+## Errors, privacy and local integration
+
+Errors use `{ "error": { "code": "...", "message": "..." } }`:
+400 validation, 401 authentication, 403 Origin/trusted-request checks, 404 missing/nonowned resources,
+409 registration conflict, 413 body bound, 415 media type, 422 analytics cardinality, 429 throttling,
+500 generic internal failure. Responses include no-store, nosniff and a correlation ID. Logs contain
+only safe category/request IDs, not credentials, SQL values, bodies or original exception messages.
+
+Use dashboard registration/project/key generation for the normal local SDK path. The optional
+`examples/local-project/create.ts --local-only` bootstrap is an ingestion fixture with a disabled owner,
+not a login account. Its `.local` files are ignored and permission-restricted; never run its SQL remotely.
+See [SDK](sdk.md) for native-Bun examples and [verification](verification.md) for actual test evidence.

@@ -79,6 +79,8 @@ export interface Overview {
   inputTokens: number;
   outputTokens: number;
   estimatedCostNanoUsd: string | null;
+  /** Sum of priced requests only, never a complete total if unpricedRequests > 0. */
+  knownEstimatedCostNanoUsd: string | null;
   pricedRequests: number;
   unpricedRequests: number;
 }

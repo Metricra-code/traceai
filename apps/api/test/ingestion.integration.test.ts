@@ -2,6 +2,7 @@ import { env, exports } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 import { MAX_BATCH_SIZE, MAX_PAYLOAD_BYTES, type TraceEvent } from '@traceai/shared';
 import { createIngestionKey, type CreatedIngestionKey } from '../src/services/api-keys';
+import { readTracePage } from '../src/repositories/analytics';
 import {
   countIngestionRequest,
   INGESTION_REQUESTS_PER_MINUTE,
@@ -246,6 +247,99 @@ describe('real Worker ingestion with migrated D1', () => {
       ).status,
     ).toBe(413);
     expect(await traceCount()).toBe(0);
+  });
+
+  it('normalizes submillisecond input before selecting an effective pricing version', async () => {
+    const key = await projectKey();
+    await addPrice('before-millisecond', {
+      effectiveTo: '2026-10-09T00:00:00.001Z',
+      inputRate: '1000000000',
+    });
+    await addPrice('at-millisecond', {
+      effectiveFrom: '2026-10-09T00:00:00.001Z',
+      inputRate: '2000000000',
+    });
+    const response = await ingest(key.rawKey, [
+      {
+        ...event,
+        traceId: 'submillisecond',
+        startedAt: '2026-10-09T00:00:00.0009Z',
+        endedAt: '2026-10-09T00:00:00.1239Z',
+      },
+      {
+        ...event,
+        traceId: 'at-boundary',
+        startedAt: '2026-10-09T00:00:00.0019Z',
+        endedAt: '2026-10-09T00:00:00.1249Z',
+      },
+    ]);
+    expect(response.status).toBe(202);
+    expect(
+      await env.DB.prepare(
+        "SELECT started_at, ended_at, pricing_version FROM traces WHERE trace_id = 'submillisecond'",
+      ).first(),
+    ).toEqual({
+      started_at: '2026-10-09T00:00:00.000Z',
+      ended_at: '2026-10-09T00:00:00.123Z',
+      pricing_version: 'before-millisecond',
+    });
+    expect(
+      await env.DB.prepare(
+        "SELECT started_at, pricing_version FROM traces WHERE trace_id = 'at-boundary'",
+      ).first(),
+    ).toEqual({ started_at: '2026-10-09T00:00:00.001Z', pricing_version: 'at-millisecond' });
+  });
+
+  it('keeps indexed filters and cursor ordering correct across same-second ISO fraction formats', async () => {
+    const key = await projectKey();
+    await ingest(key.rawKey, [
+      {
+        ...event,
+        traceId: 'no-fraction',
+        startedAt: '2026-10-09T00:00:00Z',
+        endedAt: '2026-10-09T00:00:01Z',
+      },
+      {
+        ...event,
+        traceId: 'one-fraction',
+        startedAt: '2026-10-09T00:00:00.1Z',
+        endedAt: '2026-10-09T00:00:01.1Z',
+      },
+      {
+        ...event,
+        traceId: 'many-fractions',
+        startedAt: '2026-10-09T00:00:00.5009Z',
+        endedAt: '2026-10-09T00:00:01.5009Z',
+      },
+    ]);
+    const range = {
+      from: '2026-10-09T00:00:00.000Z',
+      to: '2026-10-09T00:00:01.000Z',
+      limit: 2,
+      sort: 'oldest' as const,
+    };
+    const rows = await readTracePage(env.DB, 'project-one', range);
+    expect(rows.map((row) => row.traceId)).toEqual([
+      'no-fraction',
+      'one-fraction',
+      'many-fractions',
+    ]);
+    expect(rows.map((row) => row.startedAt)).toEqual([
+      '2026-10-09T00:00:00.000Z',
+      '2026-10-09T00:00:00.100Z',
+      '2026-10-09T00:00:00.500Z',
+    ]);
+    const filtered = await readTracePage(env.DB, 'project-one', {
+      ...range,
+      from: '2026-10-09T00:00:00.100Z',
+      to: '2026-10-09T00:00:00.500Z',
+    });
+    expect(filtered.map((row) => row.traceId)).toEqual(['one-fraction']);
+    const continued = await readTracePage(env.DB, 'project-one', {
+      ...range,
+      position: { startedAt: rows[1]!.startedAt, traceId: rows[1]!.traceId },
+    });
+    expect(continued.map((row) => row.traceId)).toEqual(['many-fractions']);
   });
 
   it('uses only effective real pricing, never the simulated registry', async () => {

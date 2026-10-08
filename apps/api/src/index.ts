@@ -6,9 +6,16 @@ import {
   IngestionRateError,
 } from './services/ingestion';
 import { RequestError } from './services/http-errors';
+import { analyticsRoutes } from './routes/analytics';
+import { authRouter } from './routes/auth';
+import { projectRouter } from './routes/projects';
+import { PasswordHasher } from './services/password-hasher';
+
+export { PasswordHasher };
 
 export interface Bindings {
   DB: D1Database;
+  PASSWORD_HASHER: DurableObjectNamespace<PasswordHasher>;
   ENVIRONMENT?: string;
   WEB_ORIGIN?: string;
 }
@@ -39,6 +46,10 @@ app.post('/v1/events/batch', async (context) => {
   await enforceIngestionRate(context.env.DB, principal.id);
   return context.json(await ingestBatch(context.env.DB, principal, context.req.raw), 202);
 });
+
+app.route('/v1/auth', authRouter);
+app.route('/v1/projects', projectRouter);
+app.route('/', analyticsRoutes);
 
 app.onError((error, context) => {
   if (error instanceof IngestionRateError)

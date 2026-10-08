@@ -4,16 +4,20 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-06",
   "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {
+    "bindings": [{ "name": "PASSWORD_HASHER", "class_name": "PasswordHasher" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PasswordHasher"] }],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "traceai-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "2cd82526-1d69-445b-9cd4-46229ed87281",
       "migrations_dir": "../../packages/database/migrations",
     },
   ],
   "vars": {
-    "WEB_ORIGIN": "http://localhost:3000",
-    "ENVIRONMENT": "development",
+    "WEB_ORIGIN": "https://traceai-web.traceai-api.workers.dev",
+    "ENVIRONMENT": "production",
   },
 }

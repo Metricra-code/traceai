@@ -21,6 +21,8 @@ export default defineConfig({
       wrangler: { configPath: fileURLToPath(new URL('./wrangler.jsonc', import.meta.url)) },
       miniflare: {
         bindings: {
+          ENVIRONMENT: 'development',
+          WEB_ORIGIN: 'http://localhost:3000',
           TEST_MIGRATIONS: await readD1Migrations(
             fileURLToPath(new URL('../../packages/database/migrations/', import.meta.url)),
           ),
