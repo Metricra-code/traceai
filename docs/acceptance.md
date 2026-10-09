@@ -141,5 +141,9 @@ Local OpenNext build and its fail-closed snapshot guard passed after moving mode
 out of dotenv discovery; 4,268 Next/OpenNext files were scanned with no actual-key matches.
 The rebuilt web was explicitly deployed, and the owner Dashboard still showed the three genuine
 traces; Settings now uses the published npm namespace. API runtime, schema/pricing and the remote
-10,000-row simulated demo remain unchanged. Final-source CI is recorded separately once it completes.
+10,000-row simulated demo remain unchanged. Final-source `4c392dd`
+[GitHub Actions passed](https://github.com/Metricra-code/traceai/actions/runs/37989793103):
+343 unit, 73 actual Worker/D1, 17 native + 17 built-workerd journeys, frozen/static/type checks,
+workspace/OpenNext builds, guarded environment snapshots and packed strict Bun/Node consumers.
+This run uses Bun 1.4.0 / Node 22.23.3 and does not publish, deploy or call a provider.
 No automatic deploy, paid provider call or auto-publish workflow was introduced.

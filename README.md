@@ -31,6 +31,10 @@ The follow-up adds real Gemini Free Tier evidence: **3 actual API calls and priv
 read-back**, 31 input / 81 output tokens, no prompt/answer capture and unknown cost.
 The anonymous demo remains simulated. [Real-data evidence](docs/gemini.md) ·
 [Release integrity and verification](docs/npm.md).
+The [final-code CI](https://github.com/Metricra-code/traceai/actions/runs/37989793103) passes
+**343 unit / 73 Worker-D1 / 17 native + 17 built-workerd browser tests**, including credential-isolation
+and installed-consumer containment regressions. Real provider calls and npm registry verification
+are separate manual evidence, not work performed by CI.
 
 ## What to explore
 
