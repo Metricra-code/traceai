@@ -1,5 +1,5 @@
 import { cpus, totalmem } from 'node:os';
-import { TraceAI } from '@traceai/sdk';
+import { TraceAI } from '@akai_80percent/traceai-sdk';
 
 const iterations = 10_000;
 const warmupIterations = 1000;

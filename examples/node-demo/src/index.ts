@@ -1,4 +1,4 @@
-import { TraceAI } from '@traceai/sdk';
+import { TraceAI } from '@akai_80percent/traceai-sdk';
 import { setTimeout } from 'node:timers/promises';
 
 const apiKey = process.env.TRACEAI_API_KEY;

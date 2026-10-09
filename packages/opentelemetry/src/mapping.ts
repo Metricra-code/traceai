@@ -6,7 +6,7 @@ import {
   snapshotTraceMetadata,
   type CompletedTrace,
   type TraceMetadata,
-} from '@traceai/sdk';
+} from '@akai_80percent/traceai-sdk';
 
 export interface SpanMappers {
   /** Only explicitly returned scalar metadata is captured, subject to the SDK's 8 KiB limit. */

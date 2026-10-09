@@ -1,24 +1,26 @@
-# @traceai/sdk
+# @akai_80percent/traceai-sdk
 
 A standalone TypeScript client for best-effort, privacy-first AI operation telemetry.
 It preserves operation results/errors, batches events, and bounds memory and delivery attempts.
 
-## Installation status
+## Installation
 
-**Not published to npm yet.** The current intended package name is `@traceai/sdk`; npm account/scope
-authorization and registry-confirmed publication are still required. The following registry install
-commands become usable **only after that publication is verified**:
+Use the public SDK package in your server-side application:
 
 ```sh
-npm install @traceai/sdk
-# Or: bun add @traceai/sdk
+bun add @akai_80percent/traceai-sdk
+# Or: npm install @akai_80percent/traceai-sdk
 ```
 
-Until then, build the repository workspace or install a locally packed tarball. From the repository root:
+For the current registry release status and verified version, see the
+[publication guide](https://github.com/Metricra-code/traceai/blob/main/docs/npm.md).
+An install command requires an available registry release; packing alone is not publication.
+For local development, build the repository workspace or install a locally packed tarball.
+From the repository root:
 
 ```sh
 bun install --frozen-lockfile
-bun run --filter @traceai/sdk build
+bun run --filter @akai_80percent/traceai-sdk build
 mkdir -p .local
 (cd packages/sdk && bun pm pack --filename ../../.local/traceai-sdk.tgz --ignore-scripts)
 ```
@@ -30,7 +32,7 @@ ignored `.local/`. Repository examples already resolve the workspace package aft
 ## Usage
 
 ```ts
-import { TraceAI } from '@traceai/sdk';
+import { TraceAI } from '@akai_80percent/traceai-sdk';
 
 const telemetry = new TraceAI({
   apiKey: process.env.TRACEAI_API_KEY!,
@@ -77,7 +79,7 @@ HTTP-acknowledged `delivered` or explicit `dropped` receipt. Do not mistake fulf
 best-effort `flush()` for acceptance. Call `flush()` before awaiting a short-lived process's receipt.
 The optional `@traceai/opentelemetry` package uses this path; the core SDK has no OTel dependency.
 
-**Not published to npm:** use this repository's workspace build or Bun-packed tarball. The repository's
+The repository's workspace builds and Bun-packed tarballs are independently checked. Its
 `bun run test:packages` verifies isolated public types, MIT license files, and Bun + Node 22 runtime
 consumers. It does not publish anything.
 

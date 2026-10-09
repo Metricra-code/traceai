@@ -1,4 +1,4 @@
-import { TraceAI, type Diagnostic, type Usage } from '@traceai/sdk';
+import { TraceAI, type Diagnostic, type Usage } from '@akai_80percent/traceai-sdk';
 import { z } from 'zod';
 
 export const REQUEST_TIMEOUT_MS = 30_000;

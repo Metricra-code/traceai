@@ -1,9 +1,11 @@
 # Public SDK publication
 
-Status: **prepared, not published**. The intended package is `@traceai/sdk@0.1.0`.
-An absent npm registry entry does not prove we own the `traceai` scope. GitHub access to
-Metricra-code does not grant npm permissions. Publish only after the owner confirms the npm
-account and scope; select an owned name before packaging if this scope is unavailable.
+Status: **name authorized, not published**. The owner confirmed
+`@akai_80percent/traceai-sdk@0.1.0` on 2026-10-10 after CLI login verified the npm account.
+The original `@traceai/sdk` workspace name did not imply ownership of the `traceai` npm scope;
+GitHub access to Metricra-code does not grant npm permissions. Source imports and examples now
+use the owner's confirmed npm namespace. Registry publication and independent installed-consumer
+verification remain separate release gates.
 
 ## Owner authentication
 
@@ -24,7 +26,7 @@ Run the documented static/unit checks, then from the repository root:
 
 ```sh
 bun install --frozen-lockfile
-bun run --filter @traceai/sdk build
+bun run --filter @akai_80percent/traceai-sdk build
 bun run --filter @traceai/opentelemetry build
 bun run test:packages
 ```
@@ -69,8 +71,24 @@ or claim provenance/OIDC signing for a manual local release.
 1. Read the exact name/version from npm, including `dist.integrity` and the repository.
 2. Install that **registry version** with Bun in a fresh external directory, not a workspace link
    or tarball override. Re-run strict public-type and Bun/Node SDK delivery tests.
-3. Record the npm URL, version, integrity and actual verification result here.
-4. Only then replace the SDK's "not published" notice with working install commands. Publishing
+3. Run the read-only registry verifier against the **same verified SDK tarball**:
+
+   ```sh
+   bun scripts/verify-npm-sdk.ts \
+     --package=@akai_80percent/traceai-sdk \
+     --version=0.1.0 \
+     --tarball=/absolute/path/to/.local/packages/<run-id>/sdk.tgz
+   ```
+
+   It anonymously checks bounded public-registry metadata/downloads, compares SHA-512 with
+   the local artifact, and installs the exact version into a fresh external Bun consumer with
+   isolated HOME/cache and no inherited npm authentication. Strict public declarations and
+   Bun/Node result/error identity, privacy, delivery and non-blocking checks use stub transport;
+   they are not D1 or real-model proof. Its 78 offline guard tests perform no publication or
+   provider calls. The verifier publishes nothing and emits no credentials.
+
+4. Record the npm URL, version, integrity and actual verification result here.
+5. Only then replace the SDK's "not published" notice with working install commands. Publishing
    the SDK alone does not publish `@traceai/opentelemetry`; keep its notice accurate.
 
 The full-product CI verifies tarballs, not that a new npm release exists or that live Gemini

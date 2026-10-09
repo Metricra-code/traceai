@@ -74,7 +74,7 @@
       "name": "@traceai/gemini-demo",
       "version": "0.1.0",
       "dependencies": {
-        "@traceai/sdk": "workspace:*",
+        "@akai_80percent/traceai-sdk": "workspace:*",
         "zod": "4.6.5",
       },
     },
@@ -82,7 +82,7 @@
       "name": "@traceai/node-demo",
       "version": "0.1.0",
       "dependencies": {
-        "@traceai/sdk": "workspace:*",
+        "@akai_80percent/traceai-sdk": "workspace:*",
       },
     },
     "examples/opentelemetry-demo": {
@@ -111,9 +111,9 @@
       "name": "@traceai/opentelemetry",
       "version": "0.1.0",
       "dependencies": {
+        "@akai_80percent/traceai-sdk": "workspace:*",
         "@opentelemetry/api": "1.9.1",
         "@opentelemetry/core": "2.12.0",
-        "@traceai/sdk": "workspace:*",
       },
       "devDependencies": {
         "@opentelemetry/sdk-trace-base": "2.12.0",
@@ -123,7 +123,7 @@
       },
     },
     "packages/sdk": {
-      "name": "@traceai/sdk",
+      "name": "@akai_80percent/traceai-sdk",
       "version": "0.1.0",
       "dependencies": {
         "zod": "4.6.5",
@@ -146,6 +146,8 @@
     "workerd",
   ],
   "packages": {
+    "@akai_80percent/traceai-sdk": ["@akai_80percent/traceai-sdk@workspace:packages/sdk"],
+
     "@alloc/quick-lru": ["@alloc/quick-lru@5.3.0", "", {}, "sha512-U4+70Pc5ZS9osnCBCE5Jha/ciHM+Yp+CNMNC/7HvYbNRk1Ldd+f7qO65W5qfhu/TCv+/ozljlXXe9Nj8419DMA=="],
 
     "@ast-grep/napi": ["@ast-grep/napi@0.40.5", "", { "optionalDependencies": { "@ast-grep/napi-darwin-arm64": "0.40.5", "@ast-grep/napi-darwin-x64": "0.40.5", "@ast-grep/napi-linux-arm64-gnu": "0.40.5", "@ast-grep/napi-linux-arm64-musl": "0.40.5", "@ast-grep/napi-linux-x64-gnu": "0.40.5", "@ast-grep/napi-linux-x64-musl": "0.40.5", "@ast-grep/napi-win32-arm64-msvc": "0.40.5", "@ast-grep/napi-win32-ia32-msvc": "0.40.5", "@ast-grep/napi-win32-x64-msvc": "0.40.5" } }, "sha512-hJA62OeBKUQT68DD2gDyhOqJxZxycqg8wLxbqjgqSzYttCMSDL9tiAQ9abgekBYNHudbJosm9sWOEbmCDfpX2A=="],
@@ -793,8 +795,6 @@
     "@traceai/opentelemetry": ["@traceai/opentelemetry@workspace:packages/opentelemetry"],
 
     "@traceai/opentelemetry-demo": ["@traceai/opentelemetry-demo@workspace:examples/opentelemetry-demo"],
-
-    "@traceai/sdk": ["@traceai/sdk@workspace:packages/sdk"],
 
     "@traceai/shared": ["@traceai/shared@workspace:packages/shared"],
 

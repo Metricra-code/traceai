@@ -34,7 +34,7 @@ TRACEAI_ENDPOINT=https://traceai-api.traceai-api.workers.dev
 ```bash
 chmod 600 .env.local
 bun install --frozen-lockfile
-bun run --filter @traceai/sdk build
+bun run --filter @akai_80percent/traceai-sdk build
 ```
 
 ## 3. 先預覽，再小量執行

@@ -1,6 +1,6 @@
 import { ExportResultCode, type ExportResult } from '@opentelemetry/core';
 import type { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { TraceAI, type DeliveryResult, type TraceAIConfig } from '@traceai/sdk';
+import { TraceAI, type DeliveryResult, type TraceAIConfig } from '@akai_80percent/traceai-sdk';
 import { mapGenAISpan, type SpanMappers } from './mapping';
 
 export interface TraceAIExporterOptions extends TraceAIConfig, SpanMappers {

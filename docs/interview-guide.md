@@ -53,7 +53,7 @@ bun run test packages/sdk/src/index.test.ts packages/sdk/src/extensions.test.ts 
   packages/opentelemetry/src/index.test.ts
 
 # Public package：build 後 pack，外部 temporary consumer 驗證 Bun／Node 與 strict types
-bun run --filter @traceai/sdk build
+bun run --filter @akai_80percent/traceai-sdk build
 bun run --filter @traceai/opentelemetry build
 bun run test:packages
 

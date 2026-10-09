@@ -8,7 +8,7 @@
     "start": "bun src/index.ts"
   },
   "dependencies": {
-    "@traceai/sdk": "workspace:*",
+    "@akai_80percent/traceai-sdk": "workspace:*",
     "zod": "4.6.5"
   }
 }

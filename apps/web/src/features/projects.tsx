@@ -99,7 +99,7 @@ export function ProjectsView() {
     </Shell>
   );
 }
-const integration = `import { TraceAI } from '@traceai/sdk';
+const integration = `import { TraceAI } from '@akai_80percent/traceai-sdk';
 
 const traceai = new TraceAI({
   apiKey: Bun.env.TRACEAI_API_KEY!,

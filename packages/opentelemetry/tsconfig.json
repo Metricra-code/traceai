@@ -3,6 +3,6 @@
   "include": ["src/**/*.ts"],
   "compilerOptions": {
     "types": ["node"],
-    "paths": { "@traceai/sdk": ["../sdk/src/index.ts"] }
+    "paths": { "@akai_80percent/traceai-sdk": ["../sdk/src/index.ts"] }
   }
 }

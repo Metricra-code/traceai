@@ -4,7 +4,9 @@ export default defineConfig({
   resolve: {
     // Adapter unit tests run before package builds in a fresh checkout; public tarballs stay dist-only.
     alias: {
-      '@traceai/sdk': fileURLToPath(new URL('./packages/sdk/src/index.ts', import.meta.url)),
+      '@akai_80percent/traceai-sdk': fileURLToPath(
+        new URL('./packages/sdk/src/index.ts', import.meta.url),
+      ),
     },
   },
   test: {
@@ -12,6 +14,7 @@ export default defineConfig({
       'packages/**/*.test.ts',
       'apps/api/src/**/*.test.ts',
       'examples/gemini-demo/src/**/*.test.ts',
+      'scripts/**/*.test.ts',
     ],
     exclude: ['**/node_modules/**', '**/dist/**'],
     coverage: {

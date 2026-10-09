@@ -125,7 +125,12 @@ simulated demo nor a passing offline test proves a real provider call or an npm 
 - [ ] npm account and owned scope confirmed, exact verified SDK artifact published, and the
       exact registry version installed/tested in independent Bun/Node consumers.
 
-`@traceai/sdk@0.1.0` is currently prepared, **not published**. The attempted Bun dry-run stopped
-at missing npm authentication; it is not a successful publication check. See [Gemini setup](gemini.md)
-and the [publication gates](npm.md). This follow-up changes no deployed API/web runtime or remote
-demo data and adds no automatic deploy, paid provider call or auto-publish workflow.
+`@akai_80percent/traceai-sdk@0.1.0` is owner-authorized and prepared, **not published**.
+The 2026-10-10 namespace migration additionally passes 308 local unit cases (including
+78 offline public-registry verifier guard cases), the unchanged 73 Worker/D1 cases and all
+workspace builds. The corrected packed-consumer check passes strict public declarations,
+license/privacy/delivery on Bun 1.4.0 and Node 22.22.0. The exact six-file SDK tarball passes
+Bun's public-registry dry-run; a dry-run is not publication. CI for this migration, registry
+consumer verification and real private-project read-back are still separate gates.
+See [Gemini setup](gemini.md) and the [publication gates](npm.md). No automatic deploy,
+paid provider call, remote demo reseed or auto-publish workflow is introduced.

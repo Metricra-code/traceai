@@ -14,7 +14,7 @@ From the repository root:
 
 ```sh
 bun install
-bun run --filter @traceai/sdk build
+bun run --filter @akai_80percent/traceai-sdk build
 # Start the apps with `bun run dev`, create an account/project, then generate a key in Settings.
 # For the deployed API, use the same workflow at the live site's /register page.
 TRACEAI_API_KEY='<new-key>' TRACEAI_ENDPOINT='http://localhost:8787' bun run demo:node
@@ -25,7 +25,7 @@ Its provider/model are illustrative and have unknown pricing; they are not bille
 Never paste the real key into committed source or shell scripts. Prefer your environment/secret manager.
 
 ```ts
-import { TraceAI } from '@traceai/sdk';
+import { TraceAI } from '@akai_80percent/traceai-sdk';
 
 const traceai = new TraceAI({
   apiKey: process.env.TRACEAI_API_KEY!,
@@ -198,11 +198,11 @@ use workspace source/builds or locally packed tarballs until publication is expl
 The Node example resolves source through TypeScript paths for pre-build checks and uses built output at runtime.
 
 ```sh
-bun run --filter @traceai/sdk typecheck
+bun run --filter @akai_80percent/traceai-sdk typecheck
 bun run --filter @traceai/node-demo typecheck
 bun run test packages/sdk/src/index.test.ts packages/sdk/src/extensions.test.ts
 bun run test packages/sdk/src/index.test.ts packages/sdk/src/extensions.test.ts --coverage --coverage.include='packages/sdk/src/**/*.ts'
-bun run --filter @traceai/sdk build
+bun run --filter @akai_80percent/traceai-sdk build
 bun run --filter @traceai/opentelemetry build
 bun run test:packages
 ```
@@ -220,7 +220,7 @@ release exists. No private workspace runtime dependency is installed; no package
 ## Repeatable overhead benchmark
 
 ```sh
-bun run --filter @traceai/sdk build
+bun run --filter @akai_80percent/traceai-sdk build
 bun examples/node-demo/src/benchmark.ts
 ```
 

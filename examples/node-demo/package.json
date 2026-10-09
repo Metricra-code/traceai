@@ -9,6 +9,6 @@
     "benchmark": "bun src/benchmark.ts"
   },
   "dependencies": {
-    "@traceai/sdk": "workspace:*"
+    "@akai_80percent/traceai-sdk": "workspace:*"
   }
 }

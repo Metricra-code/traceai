@@ -17,7 +17,7 @@ all versions/providers/signals are compatible.
 
 ```sh
 bun install
-bun run --filter @traceai/sdk build
+bun run --filter @akai_80percent/traceai-sdk build
 bun run --filter @traceai/opentelemetry build
 # Real OTel provider + in-memory HTTP acceptance, no credentials or network required:
 bun examples/opentelemetry-demo/src/index.ts

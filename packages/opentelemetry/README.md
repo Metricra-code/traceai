@@ -1,7 +1,7 @@
 # @traceai/opentelemetry
 
 Optional, server-side OpenTelemetry `SpanExporter` for GenAI operations. The core
-`@traceai/sdk` does not depend on OpenTelemetry. Bun 1.4+ / Node.js 22+; tested with
+`@akai_80percent/traceai-sdk` does not depend on OpenTelemetry. Bun 1.4+ / Node.js 22+; tested with
 OpenTelemetry API 1.9.1 and tracing SDK 2.12.0.
 **Not published to npm:** use workspace builds or the paired Bun-packed SDK/adapter tarballs.
 The repository's `bun run test:packages` exercises independent consumers without publishing.

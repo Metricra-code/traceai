@@ -20,7 +20,7 @@ const installedVersion = async (name: string) =>
   ).version;
 const fixture = String.raw`
 import assert from 'node:assert/strict';
-import { TraceAI } from '@traceai/sdk';
+import { TraceAI } from '@akai_80percent/traceai-sdk';
 import { TraceAIExporter } from '@traceai/opentelemetry';
 import { SpanStatusCode } from '@opentelemetry/api';
 import { BasicTracerProvider, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
@@ -69,7 +69,7 @@ assert.ok(!JSON.stringify(uploaded).includes('do-not-export'));
 console.log(JSON.stringify({ runtime: typeof Bun === 'undefined' ? process.version : 'Bun ' + Bun.version, sdkEvents, otelEvents: 2, passed: true }));
 `;
 const typesFixture = `
-import { TraceAI, type CompletedTrace, type TraceOptions, type DeliveryResult, sanitizeErrorSummary, snapshotTraceMetadata } from '@traceai/sdk';
+import { TraceAI, type CompletedTrace, type TraceOptions, type DeliveryResult, sanitizeErrorSummary, snapshotTraceMetadata } from '@akai_80percent/traceai-sdk';
 import { TraceAIExporter, type TraceAIExporterOptions } from '@traceai/opentelemetry';
 import type { SpanExporter } from '@opentelemetry/sdk-trace-base';
 const config: TraceAIExporterOptions = { apiKey: 'type-test', endpoint: 'http://localhost:8787', metadata: () => ({ scalar: true }) };
@@ -101,13 +101,13 @@ try {
         private: true,
         type: 'module',
         dependencies: {
-          '@traceai/sdk': `file:${join(artifacts, 'sdk.tgz')}`,
+          '@akai_80percent/traceai-sdk': `file:${join(artifacts, 'sdk.tgz')}`,
           '@traceai/opentelemetry': `file:${join(artifacts, 'opentelemetry.tgz')}`,
           '@opentelemetry/api': '1.9.1',
           '@opentelemetry/sdk-trace-base': '2.12.0',
         },
         // Until registry publication is explicitly authorized, resolve the adapter's public SDK dependency from its tarball.
-        overrides: { '@traceai/sdk': `file:${join(artifacts, 'sdk.tgz')}` },
+        overrides: { '@akai_80percent/traceai-sdk': `file:${join(artifacts, 'sdk.tgz')}` },
         devDependencies: {
           typescript: await installedVersion('typescript'),
           '@types/node': await installedVersion('@types/node'),
@@ -118,8 +118,8 @@ try {
     ),
   );
   await run('bun', ['install', '--ignore-scripts'], consumer);
-  for (const name of ['sdk', 'opentelemetry']) {
-    const directory = join(consumer, 'node_modules', '@traceai', name);
+  for (const name of ['@akai_80percent/traceai-sdk', '@traceai/opentelemetry']) {
+    const directory = join(consumer, 'node_modules', name);
     await readFile(join(directory, 'LICENSE'), 'utf8');
     await readFile(join(directory, 'README.md'), 'utf8');
     const manifest = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8')) as {

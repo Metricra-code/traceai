@@ -1,5 +1,5 @@
 {
-  "name": "@traceai/sdk",
+  "name": "@akai_80percent/traceai-sdk",
   "version": "0.1.0",
   "description": "Non-blocking, privacy-first telemetry for asynchronous AI operations",
   "private": false,
