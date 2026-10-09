@@ -116,8 +116,10 @@ simulated demo nor a passing offline test proves a real provider call or an npm 
       privacy and delivery checks pass on Bun 1.4.0 and Node 22.22.0.
 - [x] Actual CLI preview reports zero network requests. No provider key, prompt, model answer
       or provider error body is exported; missing usage/pricing stays unknown.
-- [ ] A newly published revision's GitHub Actions passes; the earlier baseline run is not
-      evidence for this extension.
+- [x] Actual GitHub Actions for extension source `868c241`
+      [passed](https://github.com/Metricra-code/traceai/actions/runs/37984428100): 230 unit,
+      73 Worker/D1 and 17 native + 17 built-workerd browser cases, plus builds/packed consumers.
+      This run uses Bun 1.4.0 / Node 22.23.3 and makes no real Gemini call or npm publication.
 - [ ] User's Free Tier key/model configured, bounded real Gemini calls completed and actual
       traces read back from the user's private project. SDK shutdown alone is not a D1 receipt.
 - [ ] npm account and owned scope confirmed, exact verified SDK artifact published, and the
