@@ -11,12 +11,26 @@ and project-scoped analytics on Cloudflare Workers/D1. No paid AI credentials ar
 
 ![TraceAI live dashboard with 10,000 simulated traces, P95 latency and server-backed analytics](docs/assets/dashboard.png)
 
-Verified locally and live: **168 unit tests**, **73 actual Worker/D1 integration cases**, and
+Verified full-product baseline locally and live: **168 unit tests**, **73 actual Worker/D1 integration cases**, and
 **17 Playwright journeys in each of native Next, built-workerd and deployed HTTPS modes**.
 The live SDK + genuine OpenTelemetry → Worker → D1 smoke also verifies sourced pricing, privacy,
 deduplication and revoked keys. The [published full-product source CI](https://github.com/Metricra-code/traceai/actions/runs/37840304644)
 passed for `70dd1a9`, including both local browser runtimes and isolated Bun/Node package consumers.
 See [verification](docs/verification.md) for the evidence and limits, not build success alone.
+
+## Public TypeScript SDK
+
+[`@akai_80percent/traceai-sdk@0.1.0`](https://www.npmjs.com/package/@akai_80percent/traceai-sdk)
+is published and verified from the public registry in fresh Bun/Node consumers with strict types.
+
+```sh
+bun add @akai_80percent/traceai-sdk@0.1.0
+```
+
+The follow-up adds real Gemini Free Tier evidence: **3 actual API calls and private-project
+read-back**, 31 input / 81 output tokens, no prompt/answer capture and unknown cost.
+The anonymous demo remains simulated. [Real-data evidence](docs/gemini.md) ·
+[Release integrity and verification](docs/npm.md).
 
 ## What to explore
 
@@ -120,4 +134,4 @@ not an enterprise SLA:
 SDK delivery is in-memory/best-effort; analytics reject windows over 31 days or 20,000 matching rows;
 Free-tier quotas require monitoring. No automatic deployment, paid AI dependency, model-quality claims,
 password reset/MFA, OTLP collector, metrics/log backend or distributed span tree.
-Public SDK/exporter packages are buildable and verified as tarballs, **not published to npm**.
+The core SDK `0.1.0` is published to npm; the optional OpenTelemetry adapter remains unpublished.

@@ -120,17 +120,26 @@ simulated demo nor a passing offline test proves a real provider call or an npm 
       [passed](https://github.com/Metricra-code/traceai/actions/runs/37984428100): 230 unit,
       73 Worker/D1 and 17 native + 17 built-workerd browser cases, plus builds/packed consumers.
       This run uses Bun 1.4.0 / Node 22.23.3 and makes no real Gemini call or npm publication.
-- [ ] User's Free Tier key/model configured, bounded real Gemini calls completed and actual
-      traces read back from the user's private project. SDK shutdown alone is not a D1 receipt.
-- [ ] npm account and owned scope confirmed, exact verified SDK artifact published, and the
+- [x] User's Free Tier key/model configured; three bounded real Gemini calls succeeded and
+      three traces were actually read back from the user's private project, including trace detail
+      source/simulated markers and Dashboard aggregates. Usage totals are 31 input / 81 output
+      tokens; cost stays unknown. Three samples are workflow evidence, not a model benchmark.
+      See [actual run and credential isolation](gemini.md). SDK shutdown alone is not a D1 receipt.
+- [x] npm account and owned scope confirmed, exact verified SDK artifact published, and the
       exact registry version installed/tested in independent Bun/Node consumers.
 
-`@akai_80percent/traceai-sdk@0.1.0` is owner-authorized and prepared, **not published**.
-The 2026-10-10 namespace migration additionally passes 308 local unit cases (including
-78 offline public-registry verifier guard cases), the unchanged 73 Worker/D1 cases and all
-workspace builds. The corrected packed-consumer check passes strict public declarations,
-license/privacy/delivery on Bun 1.4.0 and Node 22.22.0. The exact six-file SDK tarball passes
-Bun's public-registry dry-run; a dry-run is not publication. CI for this migration, registry
-consumer verification and real private-project read-back are still separate gates.
-See [Gemini setup](gemini.md) and the [publication gates](npm.md). No automatic deploy,
-paid provider call, remote demo reseed or auto-publish workflow is introduced.
+`@akai_80percent/traceai-sdk@0.1.0` is now **published and registry-consumer verified**;
+only the core SDK is published, not the optional adapter. [Exact release evidence](npm.md).
+The namespace migration CI for `815533e`
+[passed](https://github.com/Metricra-code/traceai/actions/runs/37988060508): 308 unit, 73 D1,
+17 native + 17 built-workerd journeys and packed-consumer/build checks. Those tests are not
+provider-call or registry-publication proof.
+
+The final release checks additionally add 31 real-adapter environment guard regressions and four
+canonical-containment regressions for the npm consumer verifier (343 total unit cases).
+Local OpenNext build and its fail-closed snapshot guard passed after moving model-test credentials
+out of dotenv discovery; 4,268 Next/OpenNext files were scanned with no actual-key matches.
+The rebuilt web was explicitly deployed, and the owner Dashboard still showed the three genuine
+traces; Settings now uses the published npm namespace. API runtime, schema/pricing and the remote
+10,000-row simulated demo remain unchanged. Final-source CI is recorded separately once it completes.
+No automatic deploy, paid provider call or auto-publish workflow was introduced.

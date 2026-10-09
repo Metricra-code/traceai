@@ -1,11 +1,35 @@
 # Public SDK publication
 
-Status: **name authorized, not published**. The owner confirmed
-`@akai_80percent/traceai-sdk@0.1.0` on 2026-10-10 after CLI login verified the npm account.
-The original `@traceai/sdk` workspace name did not imply ownership of the `traceai` npm scope;
-GitHub access to Metricra-code does not grant npm permissions. Source imports and examples now
-use the owner's confirmed npm namespace. Registry publication and independent installed-consumer
-verification remain separate release gates.
+Status: **published and independently verified**. The owner authorized
+[`@akai_80percent/traceai-sdk@0.1.0`](https://www.npmjs.com/package/@akai_80percent/traceai-sdk)
+and completed npm login/2FA on 2026-10-10. The exact six-file, 19,228-byte SDK tarball was published
+with Bun 1.4.0 to the public registry. After registry processing finished, exact-version anonymous
+metadata and downloads matched the pre-publication artifact, and a fresh external registry
+consumer passed strict public declarations (`skipLibCheck: false`) and SDK behavior on Bun 1.4.0
+and Node 22.22.0. Stub transport checks are not real-model or D1 proof; those are recorded separately
+in [Gemini evidence](gemini.md).
+
+```sh
+bun add @akai_80percent/traceai-sdk@0.1.0
+```
+
+Verified SHA-512 integrity:
+
+```text
+sha512-VkBJQmg09q9XEcp8wFMUWWc76BlUv2cBFKCfk2R+zNUXtbW3la5KJrfFlIEk6jt1M7KZdmZH/PEJCB74yYZWuQ==
+```
+
+Repository metadata points to `https://github.com/Metricra-code/traceai.git`. Only the core SDK was
+published; **`@traceai/opentelemetry` remains unpublished**, usable via workspace/verified tarball.
+This manual release has no automatic publication or claimed provenance/OIDC signing.
+The initial publication was rejected until the owner enabled 2FA. CLI acceptance then preceded
+anonymous version availability by a few minutes; acceptance or a placeholder version alone was
+not treated as successful release verification. No version was blindly republished.
+
+The original `@traceai/sdk` name did not imply ownership of the `traceai` npm scope;
+GitHub access does not grant npm scope permissions. The confirmed npm namespace is used consistently
+in source, examples and the deployed Settings snippet. The instructions below apply to future releases;
+never try to overwrite the already published immutable `0.1.0` version.
 
 ## Owner authentication
 
@@ -84,7 +108,7 @@ or claim provenance/OIDC signing for a manual local release.
    the local artifact, and installs the exact version into a fresh external Bun consumer with
    isolated HOME/cache and no inherited npm authentication. Strict public declarations and
    Bun/Node result/error identity, privacy, delivery and non-blocking checks use stub transport;
-   they are not D1 or real-model proof. Its 78 offline guard tests perform no publication or
+   they are not D1 or real-model proof. Its 82 offline guard/containment tests perform no publication or
    provider calls. The verifier publishes nothing and emits no credentials.
 
 4. Record the npm URL, version, integrity and actual verification result here.

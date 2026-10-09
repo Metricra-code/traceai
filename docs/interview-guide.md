@@ -79,7 +79,10 @@ bun examples/node-demo/src/benchmark.ts
 - `benchmark:sustained`：有界、read-only、保留失敗樣本的短期 modest-traffic observation，
   不是 production soak、Worker CPU profile 或容量保證。Live benchmark 仍消耗 Free quota，勿無限制重跑。
 - 不使用 paid AI calls，故 simulated demo 不能證明任何模型的真實速度／品質／帳單。
-- Public packages 未發布 npm；tarball consumer check 是分發可用性的證據，不是假稱 registry release。
+- Core SDK 已發布 [`@akai_80percent/traceai-sdk@0.1.0`](https://www.npmjs.com/package/@akai_80percent/traceai-sdk)，
+  exact registry artifact／fresh Bun+Node consumer 已驗證；optional OTel adapter 尚未發布。
+- 真實 Free Tier Gemini 的 3 筆 private traces 已讀回；P95 約 1.29 s 只示範流程，
+  不是模型排名，成本仍 unknown。公開 demo 保持 simulated，詳見 [證據](gemini.md)。
 - 無 durable queue、enterprise SLA、無限 analytics、automatic trace retention 或全 PII 偵測。
   User trace retention、auth cleanup、quota 與 rollback 限制見 [operations](operations.md)。
 

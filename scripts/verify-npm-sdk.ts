@@ -199,12 +199,14 @@ async function prepareConsumer(consumer: string, options: Options): Promise<void
   );
 }
 
-async function checkInstalledPackage(consumer: string, options: Options): Promise<void> {
+export async function checkInstalledPackage(consumer: string, options: Options): Promise<void> {
   const directory = join(consumer, 'node_modules', options.package);
-  assert.ok(
-    (await realpath(directory)).startsWith(consumer + sep),
-    'External workspace link found.',
-  );
+  // macOS temp paths can use /var aliases; compare both sides in the same canonical namespace.
+  const [consumerDirectory, packageDirectory] = await Promise.all([
+    realpath(consumer),
+    realpath(directory),
+  ]);
+  assert.ok(packageDirectory.startsWith(consumerDirectory + sep), 'External workspace link found.');
   const manifest = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8')) as {
     name: string;
     version: string;

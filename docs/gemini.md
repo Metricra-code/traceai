@@ -19,7 +19,9 @@
 
 Gemini key 和 TraceAI ingestion key 是兩把不同的 key。只放本機忽略檔，不放 chat、GitHub、瀏覽器 JavaScript、截圖或 CI log。**不要把它們貼給協作者或 AI。**
 
-在 repository 根目錄，用編輯器建立 `.env.local`（`.gitignore` 已忽略 `.env*`）：
+在 repository 根目錄，用編輯器建立 `.local/gemini.env`（`.gitignore` 已忽略 `.local/`）。不要把這兩把 key 放在根目錄或 web app 的 `.env*`：OpenNext 會讀取這些檔案並序列化到 Worker build；測試用 key 應只由以下 CLI 明確載入：
+
+先建立本機目錄：`mkdir -p .local`。
 
 ```dotenv
 GEMINI_API_KEY=
@@ -32,7 +34,7 @@ TRACEAI_ENDPOINT=https://traceai-api.traceai-api.workers.dev
 將兩個 key 空值填入自己的 key，按實際可用免費模型填入 `GEMINI_MODEL`，只有確認帳務仍為 Free Tier 後才把 `GEMINI_FREE_TIER_CONFIRMED` 改為 `1`。限制檔案權限：
 
 ```bash
-chmod 600 .env.local
+chmod 600 .local/gemini.env
 bun install --frozen-lockfile
 bun run --filter @akai_80percent/traceai-sdk build
 ```
@@ -41,10 +43,10 @@ bun run --filter @akai_80percent/traceai-sdk build
 
 ```bash
 # 不呼叫 Gemini、不建立 SDK transport，也不寫入 TraceAI。
-bun --env-file=.env.local run demo:gemini
+bun --env-file=.local/gemini.env run demo:gemini
 
 # 確認帳務和設定後，明確允許 3 次依序呼叫。
-bun --env-file=.env.local run demo:gemini --run --count=3
+bun --env-file=.local/gemini.env run demo:gemini --run --count=3
 ```
 
 `--count` 必須為 1–5，預設 3；第一輪也可只執行 `--count=1`。不要反覆跑直到得到喜歡的數字。
@@ -72,6 +74,23 @@ Dashboard 的 provider 為 `google`；`model` 是**請求的名稱**，不是事
 執行後登入自己的 project，開啟 Traces，確認最新資料具有 `simulated: false`、真實 duration、usage（若 provider 有提供）和 `google` model；再看 trace detail。若沒有看見資料，先核對 ingestion key 所屬 project 和 endpoint，不要透過無限重跑模型來補救。只有實際讀回後，才能說「線上 TraceAI 已存入真實資料」。
 
 目前沒有 Gemini 官方 pricing snapshot 匯入 TraceAI；**成本為 unknown/null 是正確結果**。不要把模擬 price、Google Paid Tier 牌價或自行填的 `$0` 當作這個 Free Tier project 的真實帳單。帳務由 Google project 狀態和官方使用頁面確認。
+
+## 2026-10-10 小量真實執行證據
+
+使用者在 AI Studio 確認 personal project 顯示 Free Tier，未開啟付費；一輪 `--count=1`
+成功後，再做一輪 `--count=2`，總共 **3 次真正的 `gemini-3.5-flash-lite` 呼叫**，
+3 次 HTTP/API 回應成功、0 失敗。官方 usage 合計 31 input tokens、81 output tokens
+（含 thinking）；SDK retry/failed/dropped/invalid 診斷均為 0。
+
+執行後在使用者的線上私人 project **實際讀回 3 筆 trace**，列表／detail 顯示 provider
+`google`、請求模型、真實 duration／usage；detail 有 `source: gemini-real-api` 與
+`simulated: false`，不含 prompt、回答或原始 error。Overview 顯示 3 requests、112 tokens、
+Average 約 1.03 s、P95 約 1.29 s；3 筆成本均為 Pricing unavailable。這是小量端到端流程
+證據，不是模型效能／品質排行或帳務稽核，也不代表以後的額度／可用性保證。
+
+private project、account 和 credential identifiers 未公開；公開 `/demo` 仍為 10,000 筆
+明確標示的模擬資料。測試憑證從 auto-loaded `.env.local` 移至 ignored、0600 的
+`.local/gemini.env`，只由 demo CLI 明確載入，避免被 OpenNext 收入部署產物。
 
 ## 驗證範圍
 

@@ -1,6 +1,10 @@
 import { createHash } from 'node:crypto';
+import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  checkInstalledPackage,
   parseVerificationOptions,
   validateRegistryRelease,
   verifyIntegrity,
@@ -186,5 +190,73 @@ describe('offline import boundary', () => {
     const imported = await import('./verify-npm-sdk');
     expect(imported.verifyNpmSdk).toBeTypeOf('function');
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe('isolated consumer package containment', () => {
+  const withSandbox = async (run: (directory: string) => Promise<void>) => {
+    const directory = await realpath(await mkdtemp(join(tmpdir(), 'traceai-consumer-test-')));
+    try {
+      await run(directory);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  };
+  const writeFakePackage = async (directory: string) => {
+    await mkdir(join(directory, 'dist'), { recursive: true });
+    await writeFile(
+      join(directory, 'package.json'),
+      JSON.stringify({
+        name: options.package,
+        version: options.version,
+        dependencies: { zod: '4.6.5' },
+      }),
+    );
+    await writeFile(join(directory, 'dist/index.d.ts'), 'export declare const fake: true;');
+    await writeFile(join(directory, 'LICENSE'), 'Synthetic test license.');
+    await writeFile(join(directory, 'README.md'), 'Synthetic test package.');
+  };
+
+  it('accepts an installed package beneath a canonical consumer directory', async () => {
+    await withSandbox(async (sandbox) => {
+      const consumer = join(sandbox, 'consumer');
+      await writeFakePackage(join(consumer, 'node_modules', options.package));
+      await expect(checkInstalledPackage(consumer, options)).resolves.toBeUndefined();
+    });
+  });
+  it('accepts an alias of the same consumer rather than misidentifying it as a workspace link', async () => {
+    await withSandbox(async (sandbox) => {
+      const consumer = join(sandbox, 'consumer');
+      const alias = join(sandbox, 'consumer-alias');
+      await writeFakePackage(join(consumer, 'node_modules', options.package));
+      await symlink(consumer, alias, 'dir');
+      await expect(checkInstalledPackage(alias, options)).resolves.toBeUndefined();
+    });
+  });
+  it('rejects a package symlink escaping the isolated consumer', async () => {
+    await withSandbox(async (sandbox) => {
+      const consumer = join(sandbox, 'consumer');
+      const outside = join(sandbox, 'outside');
+      await writeFakePackage(outside);
+      const installed = join(consumer, 'node_modules', options.package);
+      await mkdir(join(installed, '..'), { recursive: true });
+      await symlink(outside, installed, 'dir');
+      await expect(checkInstalledPackage(consumer, options)).rejects.toThrow(
+        'External workspace link found.',
+      );
+    });
+  });
+  it('rejects a sibling directory sharing the consumer path prefix', async () => {
+    await withSandbox(async (sandbox) => {
+      const consumer = join(sandbox, 'consumer');
+      const sibling = join(sandbox, 'consumer-other');
+      await writeFakePackage(sibling);
+      const installed = join(consumer, 'node_modules', options.package);
+      await mkdir(join(installed, '..'), { recursive: true });
+      await symlink(sibling, installed, 'dir');
+      await expect(checkInstalledPackage(consumer, options)).rejects.toThrow(
+        'External workspace link found.',
+      );
+    });
   });
 });

@@ -39,6 +39,29 @@ bun run --filter @traceai/web preview:built
 (cd apps/web && bunx --no-install wrangler deploy)
 ```
 
+### Keep model-test credentials outside framework dotenv discovery
+
+OpenNext 1.20.9 reads root/app `.env`, `.env.local` and mode-specific dotenv files and compiles
+all three modes into the server Worker environment snapshot. A non-`NEXT_PUBLIC_` variable is
+therefore not a guarantee that a test-only credential stays out of the deployment artifact.
+Do not place Gemini or ingestion keys there. Keep them in ignored, permission-0600
+`.local/gemini.env`, explicitly loaded only by the [Gemini CLI](gemini.md).
+
+`build:cloudflare` verifies the generated snapshot as bounded JSON data, never executing it.
+Credential-named variables (including `NEXT_PUBLIC_` credentials), missing snapshots or format
+changes fail the build without printing values; `deploy` uses this guarded build. The guard is
+name-based, not an arbitrary-secret/PII detector. Review source/assets and scan actual local keys
+before explicit rollout. When deploying a prebuilt artifact, repeat the guard first:
+
+```sh
+bun --no-env-file scripts/verify-web-env.ts
+(cd apps/web && bunx --no-install wrangler deploy)
+```
+
+Offline regression tests invoke the actual installed adapter compiler on temporary fake-only
+fixtures: a root `.env.local` canary reproduces the blocked serialization; `.local/gemini.env`
+remains outside discovery. Never use real credentials in test fixtures or CI.
+
 Keep the `PasswordHasher` export and `new_sqlite_classes` migration. Service names in the web configuration must match actual Workers. No R2, custom domain, card, paid database or AI account is required. Keep OAuth/API tokens out of Git; CI deploy tokens, if later configured, belong in GitHub Secrets. Do not copy local Wrangler credential files into the repository.
 
 For an existing deployment, export a private D1 backup first, review/apply additive migration `0002`,
@@ -100,3 +123,15 @@ TRACEAI_ENDPOINT=https://traceai-api.traceai-api.workers.dev bun scripts/benchma
 Live verification creates disposable test accounts/projects and deletes their projects/keys.
 The smoke logs out its own session; browser contexts discard client cookies, but some server session
 records can remain until expiry. Accounts remain because account deletion is not implemented. Playwright traces may include one-time test keys, so do not upload live verification artifacts publicly. Revoke/delete test credentials before sharing evidence.
+
+## 2026-10-10 SDK namespace / credential-isolation rollout
+
+Only the web was updated: version `b0d0840e-cf71-4af2-b4e8-6feaa157aab0`, with prior web
+`1305011c-4719-4f64-99c6-a347dfbc6459` retained for rollback. API remains
+`8171f54a-127c-4982-b378-161868735bcc`; no migration, pricing import or remote reseed occurred.
+The guarded build passed and 4,268 Next/OpenNext files had zero actual local-credential matches
+before explicit deployment. The contaminated local build was blocked and never deployed.
+After rollout, the authenticated owner Overview still read back three real Gemini traces / 112 tokens,
+with unknown costs, and Settings displayed the published SDK import. Public npm and fresh installed
+consumer proof is separate from deployment: [publication](npm.md), [real-model evidence](gemini.md).
+This focused rollout is not a claim of a new production soak or a repeated 17-case live baseline run.

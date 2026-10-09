@@ -5,8 +5,13 @@ bounded memory, transient retry policy, testable transport and deterministic lif
 It is not a distributed tracing or durable message queue implementation.
 
 For bounded real-model requests with your own credentials, see [Gemini integration](gemini.md).
-The public demo remains simulated. [npm publication](npm.md) tracks authorization, exact-artifact
-checks and registry verification; preparation is not a claim of completed publication.
+The public demo remains simulated. The core SDK is published as
+[`@akai_80percent/traceai-sdk@0.1.0`](https://www.npmjs.com/package/@akai_80percent/traceai-sdk).
+[Publication evidence](npm.md) includes exact-artifact integrity and independent registry consumers.
+
+```sh
+bun add @akai_80percent/traceai-sdk@0.1.0
+```
 
 ## Quick start
 
@@ -193,8 +198,9 @@ known-pattern-redacted summary (or `undefined`). Neither guarantees all-PII dete
 The public package exports only `dist/index.js` and `dist/index.d.ts`.
 `tsup` bundles the private shared schema implementation, leaving **Zod as the only runtime dependency**.
 No React, Next.js, provider SDK or private workspace package is needed by a consumer.
-The public SDK and optional adapter include the MIT license. **Neither has been published to npm**;
-use workspace source/builds or locally packed tarballs until publication is explicitly authorized.
+The public SDK and optional adapter include the MIT license. The core SDK `0.1.0` is published
+and independently verified from npm on Bun/Node; **the optional adapter remains unpublished**.
+Use its workspace build or verified packed tarball; core publication does not publish the adapter.
 The Node example resolves source through TypeScript paths for pre-build checks and uses built output at runtime.
 
 ```sh
