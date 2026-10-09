@@ -1,0 +1,14 @@
+{
+  "name": "@traceai/gemini-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "@traceai/sdk": "workspace:*",
+    "zod": "4.6.5"
+  }
+}

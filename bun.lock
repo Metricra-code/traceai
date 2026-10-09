@@ -70,6 +70,14 @@
         "wrangler": "4.148.0",
       },
     },
+    "examples/gemini-demo": {
+      "name": "@traceai/gemini-demo",
+      "version": "0.1.0",
+      "dependencies": {
+        "@traceai/sdk": "workspace:*",
+        "zod": "4.6.5",
+      },
+    },
     "examples/node-demo": {
       "name": "@traceai/node-demo",
       "version": "0.1.0",
@@ -777,6 +785,8 @@
     "@traceai/config": ["@traceai/config@workspace:packages/config"],
 
     "@traceai/database": ["@traceai/database@workspace:packages/database"],
+
+    "@traceai/gemini-demo": ["@traceai/gemini-demo@workspace:examples/gemini-demo"],
 
     "@traceai/node-demo": ["@traceai/node-demo@workspace:examples/node-demo"],
 

@@ -85,7 +85,7 @@ final reconciliation are recorded separately below; the published expanded-sourc
 These are additional deliverables for this completion request, not retroactive claims that §18
 required a collector, teams, Stripe, evaluation pipeline or a fake distributed trace tree.
 
-## Current release gates
+## Verified full-product baseline release gates
 
 - [x] Original explicit UI/registry/error-summary gaps resolved and reviewed.
 - [x] All format/lint/strict TS checks pass, including scripts and E2E TypeScript.
@@ -99,3 +99,31 @@ required a collector, teams, Stripe, evaluation pipeline or a fake distributed t
       measurements, release IDs and remaining operational limits.
 - [x] Final source/secret/scope review; original requirements and optional exporter complete,
       with operational and measurement limits explicitly retained.
+
+## 2026-10-10 Gemini / npm follow-up
+
+This extension is separate from the verified full-product baseline above. Neither the public
+simulated demo nor a passing offline test proves a real provider call or an npm release.
+
+- [x] Bounded actual Gemini REST example implemented with the real SDK, explicit `--run`,
+      user-confirmed Free Tier, no default model, at most five sequential calls and no provider retry.
+- [x] Frozen Bun install, format, lint and strict root/all nine workspace typechecks pass locally.
+- [x] 230 unit tests pass locally, including 62 injected-provider Gemini cases. These use stub
+      provider/telemetry transport, not real Gemini credentials or live provider requests.
+- [x] All workspace builds and the unchanged 73-case actual Worker/D1 integration suite pass locally.
+      These persistence cases do not establish that a real Gemini operation has been ingested.
+- [x] SDK and optional adapter rebuilt and packed; isolated public declarations, license,
+      privacy and delivery checks pass on Bun 1.4.0 and Node 22.22.0.
+- [x] Actual CLI preview reports zero network requests. No provider key, prompt, model answer
+      or provider error body is exported; missing usage/pricing stays unknown.
+- [ ] A newly published revision's GitHub Actions passes; the earlier baseline run is not
+      evidence for this extension.
+- [ ] User's Free Tier key/model configured, bounded real Gemini calls completed and actual
+      traces read back from the user's private project. SDK shutdown alone is not a D1 receipt.
+- [ ] npm account and owned scope confirmed, exact verified SDK artifact published, and the
+      exact registry version installed/tested in independent Bun/Node consumers.
+
+`@traceai/sdk@0.1.0` is currently prepared, **not published**. The attempted Bun dry-run stopped
+at missing npm authentication; it is not a successful publication check. See [Gemini setup](gemini.md)
+and the [publication gates](npm.md). This follow-up changes no deployed API/web runtime or remote
+demo data and adds no automatic deploy, paid provider call or auto-publish workflow.

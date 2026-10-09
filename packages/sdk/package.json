@@ -5,6 +5,19 @@
   "private": false,
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Metricra-code/traceai.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/Metricra-code/traceai/blob/main/docs/sdk.md",
+  "bugs": {
+    "url": "https://github.com/Metricra-code/traceai/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "engines": {
     "node": ">=22"
   },

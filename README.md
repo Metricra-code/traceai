@@ -34,6 +34,9 @@ See [verification](docs/verification.md) for the evidence and limits, not build 
   explicit opt-in redacted error summaries. Unknown prices stay unknown; estimates are not bills.
 - **Optional OpenTelemetry:** genuine GenAI `SpanExporter` with actual span IDs/timing, privacy
   allowlist and honest delivery lifecycle. [Free real-provider example](docs/opentelemetry.md).
+- **Real Gemini integration:** a bounded, explicit opt-in Bun example uses your own Free Tier provider
+  credentials and owned project; actual usage includes thinking tokens when reported. It never relabels
+  the simulated public demo. [Setup and verification gates](docs/gemini.md); a live run requires your keys.
 - **Engineering evidence:** architecture diagram, strict TypeScript, Vitest, actual Worker/D1 integration,
   Playwright journeys and GitHub Actions. [Evidence and measurement limits](docs/verification.md).
 
@@ -109,6 +112,7 @@ bounded maintenance; user traces remain until confirmed project deletion.
 [Deployment](docs/deployment.md) · [Verification](docs/verification.md) · [Requirements](docs/product-spec.md) ·
 [Acceptance ledger](docs/acceptance.md) · [Troubleshooting](docs/troubleshooting.md) · [Operations](docs/operations.md) ·
 [Pricing](docs/pricing.md) · [OpenTelemetry](docs/opentelemetry.md) · [Roadmap](docs/roadmap.md) ·
+[Real Gemini data](docs/gemini.md) · [npm publication](docs/npm.md) ·
 [面試展示導覽](docs/interview-guide.md)
 
 [GitHub source](https://github.com/Metricra-code/traceai). The full specified product is a portfolio,

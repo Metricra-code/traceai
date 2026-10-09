@@ -26,7 +26,8 @@
     "db:migrate": "bun run --filter @traceai/api db:migrate",
     "db:pricing": "bun scripts/import-pricing.ts",
     "db:seed": "bun packages/database/src/seed.ts && bun scripts/seed-local.ts",
-    "demo:node": "bun examples/node-demo/src/index.ts"
+    "demo:node": "bun examples/node-demo/src/index.ts",
+    "demo:gemini": "bun examples/gemini-demo/src/index.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

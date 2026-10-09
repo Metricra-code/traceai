@@ -4,6 +4,10 @@ The SDK is the interview centerpiece: it demonstrates an explicit asynchronous b
 bounded memory, transient retry policy, testable transport and deterministic lifecycle management.
 It is not a distributed tracing or durable message queue implementation.
 
+For bounded real-model requests with your own credentials, see [Gemini integration](gemini.md).
+The public demo remains simulated. [npm publication](npm.md) tracks authorization, exact-artifact
+checks and registry verification; preparation is not a claim of completed publication.
+
 ## Quick start
 
 From the repository root:

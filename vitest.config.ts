@@ -8,7 +8,11 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['packages/**/*.test.ts', 'apps/api/src/**/*.test.ts'],
+    include: [
+      'packages/**/*.test.ts',
+      'apps/api/src/**/*.test.ts',
+      'examples/gemini-demo/src/**/*.test.ts',
+    ],
     exclude: ['**/node_modules/**', '**/dist/**'],
     coverage: {
       provider: 'v8',

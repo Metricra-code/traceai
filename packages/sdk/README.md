@@ -3,6 +3,32 @@
 A standalone TypeScript client for best-effort, privacy-first AI operation telemetry.
 It preserves operation results/errors, batches events, and bounds memory and delivery attempts.
 
+## Installation status
+
+**Not published to npm yet.** The current intended package name is `@traceai/sdk`; npm account/scope
+authorization and registry-confirmed publication are still required. The following registry install
+commands become usable **only after that publication is verified**:
+
+```sh
+npm install @traceai/sdk
+# Or: bun add @traceai/sdk
+```
+
+Until then, build the repository workspace or install a locally packed tarball. From the repository root:
+
+```sh
+bun install --frozen-lockfile
+bun run --filter @traceai/sdk build
+mkdir -p .local
+(cd packages/sdk && bun pm pack --filename ../../.local/traceai-sdk.tgz --ignore-scripts)
+```
+
+In a separate consumer project, use `bun add /absolute/path/to/traceai/.local/traceai-sdk.tgz`
+(or `npm install` with the same file path). Packing is not publishing; generated artifacts stay in
+ignored `.local/`. Repository examples already resolve the workspace package after it is built.
+
+## Usage
+
 ```ts
 import { TraceAI } from '@traceai/sdk';
 
@@ -55,4 +81,9 @@ The optional `@traceai/opentelemetry` package uses this path; the core SDK has n
 `bun run test:packages` verifies isolated public types, MIT license files, and Bun + Node 22 runtime
 consumers. It does not publish anything.
 
-Full integration, tuning, testing and benchmark guidance lives in the repository's `docs/sdk.md`.
+Full integration, tuning, testing and benchmark guidance:
+[SDK guide](https://github.com/Metricra-code/traceai/blob/main/docs/sdk.md).
+For optional real-provider usage, see the
+[Gemini integration guide](https://github.com/Metricra-code/traceai/blob/main/docs/gemini.md).
+Gemini requires your own server-side provider credentials; free-tier/model availability and quotas
+depend on your account and may change. The mock examples do not call or bill an AI provider.
