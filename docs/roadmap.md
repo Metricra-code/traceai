@@ -87,9 +87,9 @@ and runnable OTel deadlines. Focused checks and the remaining current-source gat
 under [continued strengthening](verification.md#continued-strengthening--local-work-2026-10-10).
 This slice was subsequently pushed as `ff26876`, passed its new CI and was manually deployed on
 2026-10-11. The credential-free, same-source non-cloud checkout preserves the original cloud
-checkout because placeholders can be evicted again. The first full live suite was **20/25**, so
-the deployed improvement is not a fully passing live acceptance release. Dated results and the
-resource/transport limitations are recorded in [verification](verification.md#published-source-rollout-and-first-live-results-2026-10-11-taipei).
+checkout because placeholders can be evicted again. The first full live suite was **20/25**, not
+a passing acceptance release. The subsequent cache rollout below passed the expanded live suite;
+the initial result and resource/transport limitations remain in [verification](verification.md#published-source-rollout-and-first-live-results-2026-10-11-taipei).
 
 ## Current shell-cache follow-up gates (2026-10-11)
 
@@ -99,8 +99,14 @@ resource/transport limitations are recorded in [verification](verification.md#pu
 - [x] Old compiled cache-hit regression reproduced; new guarded artifact **26/26 built-workerd** passed,
       including HTML/RSC/segment-tree cache hits and private 401/no-store behavior.
 - [x] New native **26/26**, full typecheck/lint/format and **75 actual Worker-D1** tests passed.
-- [ ] Complete new-source CI, then the authorized deployment.
-- [ ] Re-run full live acceptance and bounded after-measurement; reconcile resource/transport failures.
+- [x] Exact source `f140c06` [new CI passed](https://github.com/Metricra-code/traceai/actions/runs/38070087528),
+      then the authorized exact-artifact web deployment; API/data/bindings were retained.
+- [x] Full live **26/26** and repeated three-operation SDK/OTel smoke passed; bounded three-sample
+      cold/warm browser measurements recorded, with the first **20/25** result retained.
+- [x] README/acceptance/deployment/verification and safe measurement evidence reconciled with
+      dated runtime-source CI, active versions and explicit operational limitations.
 
-Local cache verification is not proof that live Error 1102 or document stalls are fixed. The core
-npm SDK remains `@akai_80percent/traceai-sdk@0.1.0`; the optional OTel package remains unpublished.
+[Latest live evidence](verification.md#shell-cache-rollout--live-acceptance-2026-10-11-taipei) is a
+bounded passing acceptance run, not proof of the earlier resource cause, permanent Error 1102
+resolution, a CPU-savings claim or an SLA. Original cloud Git status can still stall. The core npm
+SDK remains `@akai_80percent/traceai-sdk@0.1.0`; the optional OTel package remains unpublished.

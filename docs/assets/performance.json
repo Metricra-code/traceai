@@ -427,5 +427,86 @@
         }
       ]
     }
-  }
+  },
+  "followUps": [
+    {
+      "sourceCommit": "f140c065884e989464e044e49dcfb530c4c5cb2b",
+      "ci": "https://github.com/Metricra-code/traceai/actions/runs/38070087528",
+      "release": {
+        "apiVersion": "245c7013-88df-48b7-b228-eaf6e5382d27",
+        "webVersion": "e6d5567c-f54d-45a8-b0a8-e040fce958b3"
+      },
+      "client": "Developer Taipei/macOS path, Apple M2; unthrottled, not a controlled network or CPU profile",
+      "limitations": "Three samples per browser-cache mode; no controlled before/after comparison, invocation CPU/memory measurement, soak or SLA. No new model-provider calls. Earlier measurements retained as dated evidence.",
+      "measurements": {
+        "dashboard-shell-cache-release": {
+          "url": "https://traceai-web.traceai-api.workers.dev/demo",
+          "measuredAt": "2026-10-10T17:12:45.602Z",
+          "browser": "Chromium 156.0.8078.4",
+          "viewport": "1440x1040",
+          "scope": "Read-only default 7-day simulated demo. Unthrottled client connection/CPU. Usable means total/P95 visible, six chart panels sized and five SVG charts rendered. Fresh browser context is not proof of a cold edge Worker. Warm run reuses browser HTTP cache, not Next client navigation. Includes network, hydration and API waterfall; not an SLA or universal <3s claim.",
+          "summary": {
+            "coldBrowserCache": {
+              "samples": 3,
+              "p50Ms": 1324,
+              "p95Ms": 1844,
+              "maximumMs": 1844,
+              "samplesUnderTarget": 3
+            },
+            "warmBrowserCache": {
+              "samples": 3,
+              "p50Ms": 985,
+              "p95Ms": 1015,
+              "maximumMs": 1015,
+              "samplesUnderTarget": 3
+            }
+          },
+          "measurements": [
+            {
+              "coldBrowserCache": {
+                "usableOverviewMs": 1844,
+                "timeToFirstByteMs": 327,
+                "domContentLoadedMs": 504,
+                "firstContentfulPaintMs": 660
+              },
+              "warmBrowserCache": {
+                "usableOverviewMs": 1015,
+                "timeToFirstByteMs": 118,
+                "domContentLoadedMs": 213,
+                "firstContentfulPaintMs": 292
+              }
+            },
+            {
+              "coldBrowserCache": {
+                "usableOverviewMs": 1324,
+                "timeToFirstByteMs": 207,
+                "domContentLoadedMs": 445,
+                "firstContentfulPaintMs": 488
+              },
+              "warmBrowserCache": {
+                "usableOverviewMs": 985,
+                "timeToFirstByteMs": 76,
+                "domContentLoadedMs": 165,
+                "firstContentfulPaintMs": 216
+              }
+            },
+            {
+              "coldBrowserCache": {
+                "usableOverviewMs": 1161,
+                "timeToFirstByteMs": 175,
+                "domContentLoadedMs": 308,
+                "firstContentfulPaintMs": 492
+              },
+              "warmBrowserCache": {
+                "usableOverviewMs": 985,
+                "timeToFirstByteMs": 94,
+                "domContentLoadedMs": 177,
+                "firstContentfulPaintMs": 216
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
 }

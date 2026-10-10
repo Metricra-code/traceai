@@ -399,6 +399,52 @@ dynamic routes and private BFF `force-dynamic` / request-and-response `no-store`
   It checks shell HTML, full RSC and segment-tree prefetch cache hits, plus uncached private 401 reads;
   the other 25 browser journeys remain covered.
 - Native **26/26** passed (2.0m); full typecheck, lint, format and **75 actual Worker-D1** tests passed.
-- At this pre-release checkpoint, new-source CI, deployment, full live acceptance and an
-  after-deployment measurement are pending. No CPU timing or claim that all five
-  live failures are fixed is made. Local cache hits are not a production availability/SLA guarantee.
+- At that pre-release checkpoint, new-source CI, deployment, full live acceptance and an
+  after-deployment measurement were pending. The completed results follow below. No CPU timing
+  was obtained; local cache hits alone were not a production availability/SLA guarantee.
+
+## Shell-cache rollout — live acceptance (2026-10-11 Taipei)
+
+Runtime source [`f140c06`](https://github.com/Metricra-code/traceai/commit/f140c065884e989464e044e49dcfb530c4c5cb2b)
+passed [new-source CI](https://github.com/Metricra-code/traceai/actions/runs/38070087528) before manual
+deployment: **373 unit cases in 21 files / 75 actual Worker-D1 / 26 native (2.0m) / 26 built-workerd
+(44.2s)**. Frozen Bun install, format/lint/types, workspace/OpenNext builds, guarded environment
+snapshots and isolated strict packed Bun/Node consumers also passed. CI did not deploy, publish,
+call a model or mutate production data. The exact artifact and active Worker IDs are recorded in
+[deployment](deployment.md#verified-shell-cache-rollout-2026-10-11-taipei).
+
+- **26/26 full live HTTPS journeys passed (1.6m)** on the new web, without widened timeouts,
+  extra retries or suppressed assertions. The five formerly failing journeys are included, along
+  with cached public HTML/RSC, uncached private 401, tenant/Origin/cookie/key checks, real SDK writes,
+  model/server filters, browser history/cancellation, applied UTC windows and loaded responsive
+  320/390/768/1440 layouts, keyboard interactions and light/dark automated AA checks.
+- Repeated `bun run verify:deployment` passed: Secure HttpOnly session, owned project, original SDK
+  success/error preservation, actual D1 persistence, unknown-price null, genuine OTel span identity
+  and prompt privacy, verified price/provenance, explicit redacted summary, replay and revocation.
+  Its **three synthetic verification operations are not new real-model calls**. Own project/keys
+  were deleted and its session logged out; disposable accounts remain.
+- The prior **20/25** run and its 1102/503/stalled-document evidence remain recorded above. No
+  invocation CPU/memory outcome was obtained; a shared cause or permanent fix is not established.
+  Local workerd does not enforce production platform resource limits. This is bounded acceptance,
+  not a soak test, universal performance guarantee or SLA.
+- The original cloud checkout's Git metadata was preserved; its tracked status still timed out
+  at 12s. Only readable, baseline/own-hash-matched source files were synchronized. This release
+  evidence does not claim that iCloud residency or full original Git status is repaired.
+
+### Bounded post-deployment dashboard measurement
+
+At **2026-10-10T17:12:45.602Z**, `TRACEAI_BENCHMARK_SAMPLES=3 bun run benchmark:dashboard` measured
+read-only `/demo` in Chromium 156 at 1440×1040 on the unthrottled developer connection/CPU.
+Usable means Total/P95 visible, six chart panels sized and five SVG charts rendered.
+
+| Browser HTTP-cache mode | Samples | P50 usable | P95 / maximum usable | Samples below 3s |
+| ----------------------- | ------- | ---------- | -------------------- | ---------------- |
+| Fresh context           | 3       | 1,324 ms   | 1,844 ms             | 3/3              |
+| Reused browser cache    | 3       | 985 ms     | 1,015 ms             | 3/3              |
+
+[Raw safe measurement data](assets/performance.json) keeps the earlier measurements unchanged
+and adds this dated rollout under `followUps`. Fresh browser contexts do **not** prove cold edge
+isolates; warm runs reuse HTTP cache, not Next client navigation. Timing includes network,
+hydration and API waterfall. The tiny samples are not a controlled before/after comparison,
+CPU-savings percentage, provider benchmark or SLA. The public data remains visibly simulated;
+the earlier private three-call Gemini/112-token evidence was not regenerated during this rollout.

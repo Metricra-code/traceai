@@ -11,12 +11,13 @@ and project-scoped analytics on Cloudflare Workers/D1. No paid AI credentials ar
 
 ![TraceAI live dashboard with 10,000 simulated traces, P95 latency and server-backed analytics](docs/assets/dashboard.png)
 
-Verified full-product baseline locally and live: **168 unit tests**, **73 actual Worker/D1 integration cases**, and
-**17 Playwright journeys in each of native Next, built-workerd and deployed HTTPS modes**.
-The live SDK + genuine OpenTelemetry → Worker → D1 smoke also verifies sourced pricing, privacy,
-deduplication and revoked keys. The [published full-product source CI](https://github.com/Metricra-code/traceai/actions/runs/37840304644)
-passed for `70dd1a9`, including both local browser runtimes and isolated Bun/Node package consumers.
-See [verification](docs/verification.md) for the evidence and limits, not build success alone.
+Latest verified runtime release (2026-10-11 Taipei): **373 unit tests**, **75 actual Worker/D1 cases**,
+and **26/26 Playwright journeys in each of native Next, built-workerd and deployed HTTPS modes**.
+[Runtime-source CI](https://github.com/Metricra-code/traceai/actions/runs/38070087528) passed for `f140c06`
+before manual deployment. The repeated live SDK + genuine OpenTelemetry → Worker → D1 smoke verifies
+sourced pricing, privacy, deduplication and revoked keys using synthetic verification operations.
+The [verification record](docs/verification.md#shell-cache-rollout--live-acceptance-2026-10-11-taipei)
+retains the initial failed rollout and measurement limits; a passing run is not an SLA.
 
 ## Public TypeScript SDK
 
@@ -31,10 +32,11 @@ The follow-up adds real Gemini Free Tier evidence: **3 actual API calls and priv
 read-back**, 31 input / 81 output tokens, no prompt/answer capture and unknown cost.
 The anonymous demo remains simulated. [Real-data evidence](docs/gemini.md) ·
 [Release integrity and verification](docs/npm.md).
-The [final-code CI](https://github.com/Metricra-code/traceai/actions/runs/37989793103) passes
-**343 unit / 73 Worker-D1 / 17 native + 17 built-workerd browser tests**, including credential-isolation
-and installed-consumer containment regressions. Real provider calls and npm registry verification
-are separate manual evidence, not work performed by CI.
+The [credential-isolation release CI](https://github.com/Metricra-code/traceai/actions/runs/37989793103)
+passed its historical **343 unit / 73 Worker-D1 / 17 native + 17 built-workerd** gates, including
+installed-consumer containment regressions; the latest expanded counts are above. Real provider calls
+and npm registry verification remain separate manual evidence, not work performed by CI.
+The core SDK artifact remains `0.1.0`; the optional OpenTelemetry adapter is not published.
 
 ## What to explore
 
@@ -43,6 +45,7 @@ are separate manual evidence, not work performed by CI.
   [Design, concurrency benchmark and tests](docs/sdk.md).
 - **Dashboard:** real API-backed Average/P95, request/latency/token/cost charts, provider-qualified model
   comparison, exact trace search, server-side filters, cursor pagination and safe operation detail.
+  Applied UTC investigation windows, Back/Forward restoration and cancellable requests preserve context.
   Persistent themes, keyboard account menu and responsive loading/error/empty states are usable.
 - **Management:** email/password sessions, owned projects, one-time ingestion keys, rotation/revocation
   and confirmed deletion. Keys never belong in a browser bundle.
@@ -51,7 +54,7 @@ are separate manual evidence, not work performed by CI.
 - **Sourced pricing/debugging:** immutable verified base-text snapshots, per-trace provenance and
   explicit opt-in redacted error summaries. Unknown prices stay unknown; estimates are not bills.
 - **Optional OpenTelemetry:** genuine GenAI `SpanExporter` with actual span IDs/timing, privacy
-  allowlist and honest delivery lifecycle. [Free real-provider example](docs/opentelemetry.md).
+  allowlist and honest delivery lifecycle. [No-credential OTel example](docs/opentelemetry.md).
 - **Real Gemini integration:** a bounded, explicit opt-in Bun example uses your own Free Tier provider
   credentials and owned project; actual usage includes thinking tokens when reported. It never relabels
   the simulated public demo. [Setup and verification gates](docs/gemini.md); a live run requires your keys.
@@ -63,10 +66,10 @@ are separate manual evidence, not work performed by CI.
 Requirements: **Bun 1.4.0 and Node >=22** for supported Cloudflare/tooling CLIs.
 Bun owns installation, workspaces, scripts, the local Next runtime and TypeScript examples;
 production executes in Cloudflare workerd. Use `bun run test` for Vitest, not the separate `bun test` runner.
-Next is pinned to **16.3.8** with OpenNext **1.20.9**: 16.4 adds a manifest the adapter does not yet
-inline ([upstream compatibility fix](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356)).
-Keep the pin until a released adapter passes actual workerd dynamic-route checks; build success alone
-did not catch this regression.
+The verified pair is Next **16.3.8** with OpenNext **1.20.9**. An earlier Next 16.4 build failed
+in workerd on a missing manifest ([upstream compatibility fix](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356)).
+This project retains its tested pin; any upgrade must pass actual workerd dynamic-route checks.
+Build success alone did not catch that historical regression.
 
 ```sh
 bun install --frozen-lockfile

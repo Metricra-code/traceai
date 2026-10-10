@@ -156,7 +156,7 @@ Prior known-compatible API `8171f54a-127c-4982-b378-161868735bcc` and web
 `b0d0840e-cf71-4af2-b4e8-6feaa157aab0` are retained for controlled rollback. Roll back web before
 API because the older API has the smaller cursor limit. Code rollback does not revert stored data.
 
-### Read-only shell-cache follow-up — locally verified, release pending
+### Read-only shell-cache follow-up — pre-release checkpoint
 
 `open-next.config.ts` now uses the installed static-assets incremental cache with interception.
 Only build-time public shells are eligible; private data is still fetched through the unchanged
@@ -169,6 +169,30 @@ environment guard. This prepares the static cache assets before direct built-wor
 exact-artifact Wrangler deployment; do not omit the population step. [OpenNext CLI](https://opennext.js.org/cloudflare/cli).
 The cache-hit regression failed against the old compiled artifact and passed in the new **26/26**
 built-workerd suite; **373** unit / **75** Worker-D1 tests and **26/26 native** passed.
-At this pre-release checkpoint, new-source CI, deployment and new live acceptance remain separate
-pending gates. These local checks do not prove the live
+At that pre-release checkpoint, new-source CI, deployment and new live acceptance were separate
+pending gates. The completed rollout is recorded below; local checks alone did not prove the live
 resource/transport failures fixed or establish CPU savings. [Detailed evidence](verification.md).
+
+## Verified shell-cache rollout (2026-10-11 Taipei)
+
+- Runtime source [`f140c06`](https://github.com/Metricra-code/traceai/commit/f140c065884e989464e044e49dcfb530c4c5cb2b)
+  [CI passed](https://github.com/Metricra-code/traceai/actions/runs/38070087528) before deployment:
+  **373 unit / 75 Worker-D1 / 26 native / 26 built-workerd**, builds and packed consumers.
+- Active web version: **`e6d5567c-f54d-45a8-b0a8-e040fce958b3`**; API remains
+  **`245c7013-88df-48b7-b228-eaf6e5382d27`**. Both deployment records show 100% traffic to
+  these versions. The 1,332-file OpenNext artifact's SHA-256 manifest was checked immediately
+  before upload; eight populated cache assets and existing bindings were retained.
+- **26/26 live HTTPS journeys passed (1.6m)**, including the five previously failed journeys,
+  public shell cache hits, private no-store responses, ownership/Origin/cookie/key boundaries,
+  real SDK writes, server filters/history/window behavior and keyboard/responsive/AA checks.
+  `bun run verify:deployment` also passed again with three synthetic verification operations;
+  its project/keys were deleted and its session logged out. This is not new model traffic.
+- No migration, pricing import, remote reseed, new resource, paid-plan change or npm republish.
+  The core SDK stays `@akai_80percent/traceai-sdk@0.1.0`; the optional OTel adapter is unpublished.
+- For a cache-only rollback, prior web `252c6856-6db5-4269-be25-ed0fc01b9ae5` can keep the
+  current API, but that web version had the recorded failed live run. For the older known-compatible
+  pair above, roll back web **before** API. Code rollback never undoes stored data/schema.
+
+The earlier failures remain evidence: this passing run does not establish their CPU-versus-memory
+cause, permanent resolution or availability SLA. See the [live result and bounded measurement](verification.md#shell-cache-rollout--live-acceptance-2026-10-11-taipei).
+A documentation-only evidence update does not require rebuilding or redeploying this runtime artifact.
