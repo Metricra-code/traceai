@@ -1,6 +1,6 @@
 # Full-product verification evidence
 
-Recorded **2026-10-09 Taipei** with Bun **1.4.0**, Node **22.22.0**, actual Cloudflare
+Baseline recorded **2026-10-09 Taipei** with Bun **1.4.0**, Node **22.22.0**, actual Cloudflare
 workerd/D1 and Chromium **156.0.8078.4**. This verifies the full supplied specification
 plus the optional GenAI OpenTelemetry exporter, not just the earlier baseline MVP.
 Local checks, live runtime, measurements and remote CI are distinct kinds of evidence.
@@ -77,7 +77,7 @@ No paid provider call occurred. Read-back checks confirmed:
 - Project/keys/traces deleted and session logged out. Test account records remain because account deletion
   is deliberately not implemented. Never publish live Playwright traces containing disposable credentials.
 
-## Measured performance — current deployed release
+## Measured performance — 2026-10-09 deployed baseline
 
 Safe aggregate output, timestamps, individual browser samples and all SDK repeats are retained in
 [performance.json](assets/performance.json). These are client-observed samples, **not an SLA**.
@@ -185,7 +185,8 @@ automatic deployment and uploads failure artifacts only from disposable local en
 ## Continued strengthening — local work, 2026-10-10
 
 The earlier release/CI evidence is historical evidence for its recorded revisions, **not proof of
-these uncommitted changes**. This slice has not been published, pushed or deployed. The public
+the then-uncommitted changes**. At this local checkpoint the slice had not been pushed or deployed;
+the subsequent 2026-10-11 rollout is recorded below. The public
 SDK remains the separately verified npm `0.1.0`; no real model calls or additional production/provider
 credential creation were performed in this slice. Browser tests create only disposable local keys.
 
@@ -311,12 +312,12 @@ operate locally, with no real provider calls or production writes.
 The original full Git status still timed out, including a bounded tracked-only probe. Scoped original
 diff checks and readable changed-source hashes passed, and full status/diff checks passed in the
 same-source verification copy. Preserve the original checkout and inspect full status before any
-commit/push; do not infer that its cloud residency problem is fixed. The current local slice remains
-uncommitted and undeployed: published-source CI, manual deployment and live after-measurement are
-separate future steps, not checked gates for this local improvement.
+commit/push; do not infer that its cloud residency problem is fixed. At that local checkpoint the
+slice remained uncommitted and undeployed. Later published-source CI and manual deployment are
+recorded separately below; local checks were not substituted for them.
 
 No older CI result or health check proves these locally verified changes. Production health was separately
-observed HTTP200 during the follow-up; the live product was not replaced by this unverified slice.
+observed HTTP200 during that local follow-up; it did not prove this slice had been deployed.
 
 ## Trace-start window clarity — local validation (2026-10-11 Taipei)
 
@@ -355,6 +356,49 @@ the remaining blocking file are not established. No placeholder/index overwrite,
 system-service restart occurred. The credential-free non-cloud checkout has complete status/diff
 checks and is the explicitly reviewed release candidate; original files and Git metadata are preserved.
 
-The owner explicitly authorized push, a new CI run, and deployment only after it succeeds. At this
-local checkpoint, those remote gates remain pending; npm `0.1.0` is not republished. Deployment/CI
-results must be recorded separately rather than inferred from these local passes.
+The owner explicitly authorized push, a new CI run, and deployment only after it succeeds. Those
+steps subsequently ran as recorded below; npm `0.1.0` was not republished.
+
+## Published-source rollout and first live results (2026-10-11 Taipei)
+
+Runtime source [`ff26876`](https://github.com/Metricra-code/traceai/commit/ff26876b0c06551f899102c34945ffccb4ce9fbc)
+was pushed from the reviewed credential-free checkout; the original cloud checkout's files and Git
+metadata were preserved. [Its new CI passed](https://github.com/Metricra-code/traceai/actions/runs/38068400923)
+with **369 unit / 75 actual Worker-D1**, **25/25 native** (2.1m), and **25/25 built-workerd** (51.0s).
+CI success was confirmed before manual API/web rollout, not inferred from the earlier baseline.
+Version IDs and rollback order are in [deployment](deployment.md#2026-10-11-investigation-window-rollout-and-live-limitations).
+No migration, pricing import, remote reseed, paid-plan change, model-provider call or npm republish occurred.
+
+`bun run verify:deployment` passed with three synthetic deployment-verification operations: original
+SDK result/error identity, genuine ended OTel span IDs, persisted unknown-cost null, sourced subtotal,
+explicit safe summary, replay and revoked-key rejection. Its project/keys were deleted and its session
+logged out; disposable account records remain. This is live SDK/OTel-to-D1 proof, not new Gemini traffic.
+
+The first full live browser run was **20 passed / 5 failed**, not a release acceptance pass. Retained
+failure evidence includes an actual `/projects` Cloudflare **Error 1102**, a private Settings document
+**503**, and public document navigations ending in `net::ERR_ABORTED` at teardown. The public traces
+showed no completed document response or subsequent assets/API requests, ruling out a mere
+`load`-event wait on child assets. Their transport/edge cause is not established. Error 1102 alone
+also does not distinguish CPU from memory exhaustion. [Cloudflare errors](https://developers.cloudflare.com/workers/observability/errors/),
+[resource limits](https://developers.cloudflare.com/workers/platform/limits/).
+No timeout/retry was widened or failed assertion suppressed. Private failure artifacts can contain
+disposable one-time keys and remain outside public documentation/artifact uploads.
+
+## Read-only shell-cache regression — local follow-up (2026-10-11 Taipei)
+
+The minimal follow-up configures the actual installed read-only static-assets incremental cache
+and cache interception, and populates local cache assets between the OpenNext build and environment
+guard. It adds no R2, queue, tag cache or revalidation. Only prerendered public shells are eligible;
+dynamic routes and private BFF `force-dynamic` / request-and-response `no-store` remain unchanged.
+[OpenNext caching](https://opennext.js.org/cloudflare/caching), [CLI](https://opennext.js.org/cloudflare/cli).
+
+- Thin unit contracts: **2 failed / 2 passed RED → 4/4 GREEN**, using actual config/installed adapter
+  identity and synthetic 401 transport, not production credentials; full unit suite **373/373** (3.16s).
+- Old compiled-workerd regression failed because `x-opennext-cache` was absent instead of `HIT`.
+  After the guarded build/population, **26/26 built-workerd** passed (43.6s, Node22.22.0, `CI=1`).
+  It checks shell HTML, full RSC and segment-tree prefetch cache hits, plus uncached private 401 reads;
+  the other 25 browser journeys remain covered.
+- Native **26/26** passed (2.0m); full typecheck, lint, format and **75 actual Worker-D1** tests passed.
+- At this pre-release checkpoint, new-source CI, deployment, full live acceptance and an
+  after-deployment measurement are pending. No CPU timing or claim that all five
+  live failures are fixed is made. Local cache hits are not a production availability/SLA guarantee.

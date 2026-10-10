@@ -49,7 +49,7 @@ The SDK/adapter's focused tests, typechecks, builds and packed consumers have lo
 in [SDK](sdk.md) and [OpenTelemetry](opentelemetry.md). The expanded whole-product local and live
 results are recorded in [verification](verification.md), alongside the separate passing published-source CI.
 
-## Expanded-release gates
+## Historical expanded-release gates (2026-10-09)
 
 Current recorded results are in [verification](verification.md) and the detailed [acceptance ledger](acceptance.md).
 
@@ -62,7 +62,7 @@ Current recorded results are in [verification](verification.md) and the detailed
       and17 live-browser journeys passed. No remote demo reseed.
 - [x] Actual [GitHub Actions](https://github.com/Metricra-code/traceai/actions/runs/37840304644) passed
       for expanded runtime source `70dd1a9`; earlier baseline CI is not substituted.
-- [x] Final documentation/secret/scope reconciliation after that run; no remaining required product work.
+- [x] Final documentation/secret/scope reconciliation after that dated run; later follow-up gates below are separate.
 
 Next remains pinned to **16.3.8** until a compatible adapter release passes actual workerd dynamic routes.
 Source implementation, locally green checks, a deployed health route and a passing published-source CI
@@ -85,6 +85,22 @@ The verified release above remains a dated baseline. A new local slice improves 
 continuity, query cancellation/refresh efficiency, cursor compatibility, linear provider aggregation
 and runnable OTel deadlines. Focused checks and the remaining current-source gates are recorded
 under [continued strengthening](verification.md#continued-strengthening--local-work-2026-10-10).
-These uncommitted changes are not yet a new published/deployed release. Current checks use a
-credential-free, same-source non-cloud verification copy because local cloud placeholders can
-be evicted again; the dated outcomes and remaining gates are recorded in verification.
+This slice was subsequently pushed as `ff26876`, passed its new CI and was manually deployed on
+2026-10-11. The credential-free, same-source non-cloud checkout preserves the original cloud
+checkout because placeholders can be evicted again. The first full live suite was **20/25**, so
+the deployed improvement is not a fully passing live acceptance release. Dated results and the
+resource/transport limitations are recorded in [verification](verification.md#published-source-rollout-and-first-live-results-2026-10-11-taipei).
+
+## Current shell-cache follow-up gates (2026-10-11)
+
+- [x] Minimal read-only static-assets cache/interception and guarded build-time population implemented;
+      no private API caching, R2, revalidation queue/tag cache, paid-plan change or npm republish.
+- [x] Actual configuration/BFF contracts: **4/4** after recorded RED; full unit suite **373/373**.
+- [x] Old compiled cache-hit regression reproduced; new guarded artifact **26/26 built-workerd** passed,
+      including HTML/RSC/segment-tree cache hits and private 401/no-store behavior.
+- [x] New native **26/26**, full typecheck/lint/format and **75 actual Worker-D1** tests passed.
+- [ ] Complete new-source CI, then the authorized deployment.
+- [ ] Re-run full live acceptance and bounded after-measurement; reconcile resource/transport failures.
+
+Local cache verification is not proof that live Error 1102 or document stalls are fixed. The core
+npm SDK remains `@akai_80percent/traceai-sdk@0.1.0`; the optional OTel package remains unpublished.

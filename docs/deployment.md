@@ -5,7 +5,7 @@ Manual Cloudflare deployment; no auto-deploy and no paid model calls. Bun `1.4.0
 ## Environments
 
 - API: [traceai-api](https://traceai-api.traceai-api.workers.dev)
-- Web: [public demo](https://traceai-web.traceai-api.workers.dev/demo) (verified live)
+- Web: [public demo](https://traceai-web.traceai-api.workers.dev/demo) (dated live results and current limitations below)
 - D1: `traceai-db`, ID `2cd82526-1d69-445b-9cd4-46229ed87281` (resource IDs are public configuration, not credentials).
 - Web `TRACEAI_API` service binding calls API; browsers use the same-origin `/api/*` proxy. Cookies have no Domain attribute and stay on the web host.
 - Production configuration fails closed with `ENVIRONMENT=production`, exact `WEB_ORIGIN`, HttpOnly/Secure/SameSite=Lax seven-day session cookies. `bun run dev` explicitly overrides origin/environment for local HTTP only.
@@ -93,7 +93,7 @@ key rotation/revocation, keyboard/theme/AA/mobile rendering. Measure rather than
 Retain prior Worker version IDs and export D1 before migrations; code rollback does not undo schema/data
 changes. Migration `0002` is additive; do not drop its columns/guards to roll back application code.
 
-## Current full-product release evidence (2026-10-09 Taipei)
+## Historical full-product release evidence (2026-10-09 Taipei)
 
 - API version: `8171f54a-127c-4982-b378-161868735bcc`; web version: `1305011c-4719-4f64-99c6-a347dfbc6459`.
 - Prior known-compatible API: `3bd26be5-4957-43e2-87c8-86d9a184ec35`; web: `6a80bb0c-234d-4ff6-827a-289606d1fd9d`.
@@ -135,3 +135,40 @@ After rollout, the authenticated owner Overview still read back three real Gemin
 with unknown costs, and Settings displayed the published SDK import. Public npm and fresh installed
 consumer proof is separate from deployment: [publication](npm.md), [real-model evidence](gemini.md).
 This focused rollout is not a claim of a new production soak or a repeated 17-case live baseline run.
+
+## 2026-10-11 investigation-window rollout and live limitations
+
+Source [`ff26876`](https://github.com/Metricra-code/traceai/commit/ff26876b0c06551f899102c34945ffccb4ce9fbc)
+was pushed after explicit owner approval. Its [new CI passed](https://github.com/Metricra-code/traceai/actions/runs/38068400923)
+before manual deployment: API `245c7013-88df-48b7-b228-eaf6e5382d27`, web
+`252c6856-6db5-4269-be25-ed0fc01b9ae5`. D1/bindings were retained; no migration, pricing import,
+reseed, model-provider call, paid-plan change or npm republication occurred.
+
+The deployed SDK/OTel smoke passed with three stored **synthetic deployment-verification** operations,
+not three real model calls. The first complete live browser suite was **20 passed / 5 failed**:
+an actual `/projects` response showed Cloudflare Error 1102; private Settings navigation returned
+503; public document navigations also stalled. This is not a fully passing live release.
+1102 can represent CPU or memory exhaustion; without invocation metrics, neither the failing
+resource nor a common cause for all failures is established. [Cloudflare errors](https://developers.cloudflare.com/workers/observability/errors/),
+[limits](https://developers.cloudflare.com/workers/platform/limits/).
+
+Prior known-compatible API `8171f54a-127c-4982-b378-161868735bcc` and web
+`b0d0840e-cf71-4af2-b4e8-6feaa157aab0` are retained for controlled rollback. Roll back web before
+API because the older API has the smaller cursor limit. Code rollback does not revert stored data.
+
+### Read-only shell-cache follow-up — locally verified, release pending
+
+`open-next.config.ts` now uses the installed static-assets incremental cache with interception.
+Only build-time public shells are eligible; private data is still fetched through the unchanged
+`force-dynamic`, `no-store` BFF. Dynamic dashboard, login and detail routes still use the server.
+No R2, revalidation queue, tag cache or revalidation support was added.
+[OpenNext caching](https://opennext.js.org/cloudflare/caching).
+
+The guarded build now runs `opennextjs-cloudflare build`, then `populateCache local`, then the
+environment guard. This prepares the static cache assets before direct built-workerd preview or
+exact-artifact Wrangler deployment; do not omit the population step. [OpenNext CLI](https://opennext.js.org/cloudflare/cli).
+The cache-hit regression failed against the old compiled artifact and passed in the new **26/26**
+built-workerd suite; **373** unit / **75** Worker-D1 tests and **26/26 native** passed.
+At this pre-release checkpoint, new-source CI, deployment and new live acceptance remain separate
+pending gates. These local checks do not prove the live
+resource/transport failures fixed or establish CPU savings. [Detailed evidence](verification.md).

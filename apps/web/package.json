@@ -6,7 +6,7 @@
     "dev": "bun --bun next dev --port 3000",
     "typecheck": "bun --bun next typegen && tsc --noEmit",
     "build": "bun --bun next build",
-    "build:cloudflare": "opennextjs-cloudflare build && bun --no-env-file ../../scripts/verify-web-env.ts",
+    "build:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare populateCache local && bun --no-env-file ../../scripts/verify-web-env.ts",
     "preview": "bun run build:cloudflare && opennextjs-cloudflare preview",
     "preview:built": "bunx --no-install wrangler dev --port 3000 --inspector-port 9230",
     "deploy": "bun run build:cloudflare && opennextjs-cloudflare deploy"
