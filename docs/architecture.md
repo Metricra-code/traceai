@@ -1,6 +1,7 @@
 # Architecture
 
-The web/API Workers are deployed: [web demo](https://traceai-web.traceai-api.workers.dev/demo),
+The web/API Workers are deployed: [real measurements](https://traceai-web.traceai-api.workers.dev/showcase),
+[simulated demo](https://traceai-web.traceai-api.workers.dev/demo),
 [API health](https://traceai-api.traceai-api.workers.dev/health). The standalone SDK and optional OTel
 exporter are client packages verified against those Workers, not additional hosted collectors.
 Current built-workerd/live-browser and real SDK/OTel → D1 evidence is recorded separately from
@@ -27,6 +28,9 @@ flowchart LR
     AN --> D
     H -->|private password RPC| PW[SQLite-backed PasswordHasher Durable Object]
     PW -->|salted scrypt digest only| H
+    REAL[Public recorded-real showcase] --> N
+    N -->|exact GET /api/showcase; no private reads| SNAP[Immutable approved 3-call snapshot]
+    D -.->|owner-reviewed offline operational projection| SNAP
     U[Public read-only simulated demo] --> N
     H --> DE[Fixed demo project reads]
     DE --> D
@@ -34,6 +38,12 @@ flowchart LR
 ```
 
 ## Responsibilities and trust boundaries
+
+- Real public measurements are an immutable owner-approved projection of three already-persisted
+  Gemini operations, not a live connection to a private project. Only model/duration/token/status
+  fields and derived public ordinals reach the isolated Next `/api/showcase` route. Strict public
+  filters never select a private scope, and the route reads no sessions, keys, D1 or model endpoint.
+  `/demo` retains the separate simulated dataset and existing fixed-project restrictions.
 
 - SDK knows neither React nor application return shapes. It captures only labels, time, categories,
   optional usage and explicit scalar metadata. Telemetry errors cannot replace an operation's result/error.

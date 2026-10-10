@@ -5,11 +5,12 @@
 A privacy-first LLM observability portfolio: a standalone TypeScript SDK, a usable React dashboard,
 and project-scoped analytics on Cloudflare Workers/D1. No paid AI credentials are needed.
 
-**[Open the live read-only demo](https://traceai-web.traceai-api.workers.dev/demo)** ·
+**[Open real model measurements](https://traceai-web.traceai-api.workers.dev/showcase)** ·
+[Explore the separate simulated demo](https://traceai-web.traceai-api.workers.dev/demo) ·
 [API health](https://traceai-api.traceai-api.workers.dev/health) ·
 [GitHub source](https://github.com/Metricra-code/traceai)
 
-![TraceAI live dashboard with 10,000 simulated traces, P95 latency and server-backed analytics](docs/assets/dashboard.png)
+![Historical simulated-demo dashboard with 10,000 traces, P95 latency and server-backed analytics](docs/assets/dashboard.png)
 
 Latest verified runtime release (2026-10-11 Taipei): **373 unit tests**, **75 actual Worker/D1 cases**,
 and **26/26 Playwright journeys in each of native Next, built-workerd and deployed HTTPS modes**.
@@ -18,6 +19,20 @@ before manual deployment. The repeated live SDK + genuine OpenTelemetry → Work
 sourced pricing, privacy, deduplication and revoked keys using synthetic verification operations.
 The [verification record](docs/verification.md#shell-cache-rollout--live-acceptance-2026-10-11-taipei)
 retains the initial failed rollout and measurement limits; a passing run is not an SLA.
+
+## Real measurements and a separate simulated demo
+
+The main entry opens `/showcase`: **three genuine Gemini REST calls**, captured by the published
+SDK, persisted in D1 and read back before a strict owner-approved public projection. It shows actual
+model, operation latency, token usage and status, plus server-side model/status filters and latency
+sorting. A recorded snapshot is **not live traffic**; with three samples P95 equals the maximum,
+and one recorded model is not a quality comparison or production benchmark.
+
+The original `/demo` remains a separate, clearly simulated 10,000-row interactive dataset for
+multi-model comparisons, trace detail, date filters and pagination. Both pages link to each other.
+Visiting either page never calls an AI model. The real snapshot contains no private project/trace IDs,
+account information, prompt/response content, keys, metadata or fabricated costs.
+[Data boundary and verification](docs/demo.md#recorded-real-measurements--separate-public-entry).
 
 ## Public TypeScript SDK
 

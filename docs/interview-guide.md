@@ -13,18 +13,21 @@ CI／live URL 當作新增功能的發布證據。
 
 ## 建議展示順序（約 5–8 分鐘）
 
-1. **Dashboard**：先開 [read-only demo](https://traceai-web.traceai-api.workers.dev/demo)，說明
-   simulated 標記與資料時間窗。展示 Average／P95、request/latency/token/cost 圖與模型比較；
+1. **真實實測**：先開 [Real measurements](https://traceai-web.traceai-api.workers.dev/showcase)，
+   說明這是三筆已核對 D1 的 Gemini 歷史紀錄、112 tokens，不是即時流量。展示逐筆延遲、
+   server-side 排序／篩選，以及五欄公開投影的隱私邊界；三筆的 P95 等於最大值，不能當 SLA。
+2. **Dashboard**：用頁面的資料來源切換開 [獨立 simulated demo](https://traceai-web.traceai-api.workers.dev/demo)，說明
+   10,000 筆 simulated 標記與資料時間窗。展示 Average／P95、request/latency/token/cost 圖與模型比較；
    展示前先確認該環境與 verification 記錄相符。
-2. **Trace debugging**：切 provider／model／status、精確 trace ID、排序與下一頁；
+3. **Trace debugging**：切 provider／model／status、精確 trace ID、排序與下一頁；
    看 Network 的 query params，證明是 server filtering。開 detail，說明單次 operation timeline、
    可選 safe summary、unknown cost 與 pricing provenance，不能假稱多層 spans。
-3. **SDK**：展示下面的 focused tests／範例。成功回傳同一物件、失敗拋回同一錯誤；
+4. **SDK**：展示下面的 focused tests／範例。成功回傳同一物件、失敗拋回同一錯誤；
    telemetry transport 尚未完成也不擋應用回傳。再展示 retry 與 queue overflow 的測試。
-4. **真實資料路徑**：若該環境已驗收，展示自己 project 的 SDK → Worker → D1 trace。
+5. **私人資料路徑**：若該環境已驗收，展示自己 project 的 SDK → Worker → D1 trace。
    Settings 在建立／輪替 key 時只暫時一次顯示，存在 component memory；不嵌入 browser bundle，
    也不持久化 client storage。避免把真實 key 放進分享螢幕、影片或測試 artifact。
-5. **工程證據**：最後展示對應 revision 的實際 Actions、Vitest、D1 integration、dev/workerd E2E；
+6. **工程證據**：最後展示對應 revision 的實際 Actions、Vitest、D1 integration、dev/workerd E2E；
    build 綠燈不等於 production journey 綠燈。OTel 免費範例是加分項，不要搶走 SDK 重點。
 
 ## 最值得深入解釋的設計取捨

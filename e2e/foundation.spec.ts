@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-test('root opens the interactive public demo', async ({ page }) => {
+test('root opens the recorded real measurements', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveURL(/\/demo$/);
-  await expect(page.getByRole('heading', { name: 'Overview', exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/showcase$/);
+  await expect(page.getByRole('heading', { name: 'Real measurements', exact: true })).toBeVisible();
 });
 const endpoint = process.env.TRACEAI_E2E_API_URL ?? 'http://127.0.0.1:8787';
 test('Worker health confirms the D1 connection', async ({ request }) => {

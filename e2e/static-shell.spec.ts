@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('prerendered shells use the Worker cache while private BFF reads remain uncached', async ({
   request,
 }) => {
-  for (const path of ['/projects', '/demo', '/demo/traces?range=30']) {
+  for (const path of ['/showcase', '/projects', '/demo', '/demo/traces?range=30']) {
     const response = await request.get(path);
     expect(response.status()).toBe(200);
     expect(response.headers()['content-type']).toContain('text/html');

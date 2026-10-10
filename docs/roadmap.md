@@ -110,3 +110,21 @@ the initial result and resource/transport limitations remain in [verification](v
 bounded passing acceptance run, not proof of the earlier resource cause, permanent Error 1102
 resolution, a CPU-savings claim or an SLA. Original cloud Git status can still stall. The core npm
 SDK remains `@akai_80percent/traceai-sdk@0.1.0`; the optional OTel package remains unpublished.
+
+## Real public entry with a separate simulated Demo (2026-10-11)
+
+- [x] Owner-approved five-field projection of the three real Gemini SDK operations, checked by
+      scoped read-only D1 read-back; private project sharing, keys, content and identifiers excluded.
+- [x] Main `/showcase` page, actual per-call metrics, server filtering/sorting and explicit read-only
+      recorded/small-sample/non-live labels; separate `/demo` and two-way source switch retained.
+- [x] Strict isolated public GET endpoint with no D1/session/private BFF/provider access at runtime;
+      no schema/API Worker/SDK/lockfile changes or additional paid/model calls.
+- [x] Meaningful RED/GREEN, **418 unit / 75 actual Worker-D1**, strict types/lint/format locally green.
+- [x] Full native **30/30** and guarded built-workerd **30/30** journeys, including recorded-real
+      server filters/source switch/privacy/responsive/AA and cached shell regression.
+- [ ] Published-source CI.
+- [ ] CI-gated exact web deployment, repeated live acceptance and final evidence reconciliation.
+
+This public snapshot is real historical workflow evidence, not simulated traffic or a model benchmark.
+Future private operations are not published automatically; each update needs an explicit reviewed
+allowlist projection and deployment. [Scope](demo.md#recorded-real-measurements--separate-public-entry).

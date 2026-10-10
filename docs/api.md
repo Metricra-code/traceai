@@ -182,3 +182,19 @@ projects, API keys, model-pricing versions or traces are deleted. Backlogs are d
 invocations rather than a large unbounded DELETE. Logs contain only event/category and deletion counts,
 never token values, counter identities, bodies or exception strings. This is auth-state cleanup, **not
 trace retention/archival**; see [operations](operations.md) for the operator quota and retention policy.
+
+## Recorded-real showcase (Next web route, not the API Worker)
+
+`GET /api/showcase` on the web origin serves a fixed owner-approved three-call real measurement
+snapshot. This is an exact sibling route, not a new catch-all BFF path or a public private-project
+endpoint. Parameters: optional exact `model`, optional `status=success|error`, and
+`sort=recorded|latency-asc|latency-desc` (default `recorded`). Duplicate/unknown parameters are 400;
+unsupported writes are 405. Responses use `Cache-Control: no-store` and `nosniff`.
+
+Success response: `{ source: "recorded-real", snapshot: true, totalSamples: 3, items, summary, models }`.
+Each item contains only `model`, `durationMs`, `inputTokens`, `outputTokens`, `status` and a derived
+public `sampleNumber`. Summary/model statistics are calculated from matching samples; empty
+latency percentiles and incomplete token subtotals stay null. No project/trace/account identifiers,
+provider credentials, prompts, answers, metadata, timestamps, errors or costs are exposed.
+The public runtime never queries D1, authenticates a session or calls a provider for this endpoint.
+See [source and measurement limits](demo.md#recorded-real-measurements--separate-public-entry).

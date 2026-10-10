@@ -97,3 +97,15 @@ private project、account 和 credential identifiers 未公開；公開 `/demo` 
 - `examples/gemini-demo/src/gemini.test.ts`：injected provider fetch + **真正 SDK**／stub telemetry 的離線測試；涵蓋 Token/thinking、缺漏 usage、設定、bounds、timeout、敏感資料、停止條件與 transport 失敗。
 - 這些測試**沒有呼叫真實 Gemini**，不證明你的 key、額度、模型資格或線上 D1 read-back。
 - CI 不會執行 `--run`；沒有提交 provider credentials 或模型輸出。
+
+## 獨立公開實測頁（2026-10-11）
+
+經使用者同意，既有三次真實呼叫的 **model、latency、input/output token、status**
+已透過 owner-scoped D1 唯讀投影核對，提供 `/showcase` 的公開快照；主 `/` 入口指向它。
+公開 sample number 是新編的序號，不是私人 trace ID。沒有把私人 project 改為公開，
+沒有公開帳號、prompt、回答、key、metadata 或原始 timestamp，也沒有新增 Gemini 呼叫。
+
+`/demo` 另保留原有 10,000 筆模擬資料，兩頁都有明確切換入口。實測頁是歷史三筆的
+小樣本端到端證據，**不是持續即時流量、模型品質比較或 SLA**。公開 route 不讀私人
+project、不存 provider key、也不會因訪客開頁而呼叫模型。成本未驗證，因此不展示 `$0`。
+[公開資料邊界](demo.md#recorded-real-measurements--separate-public-entry)。

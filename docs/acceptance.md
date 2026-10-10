@@ -161,3 +161,13 @@ traces; Settings now uses the published npm namespace. API runtime, schema/prici
 workspace/OpenNext builds, guarded environment snapshots and packed strict Bun/Node consumers.
 This run uses Bun 1.4.0 / Node 22.23.3 and does not publish, deploy or call a provider.
 No automatic deploy, paid provider call or auto-publish workflow was introduced.
+
+## Recorded-real primary entry follow-up (2026-10-11 Taipei)
+
+The original simulated-demo requirement remains implemented at `/demo`. A separate `/showcase`
+now serves as the main portfolio entry, with a five-field owner-approved snapshot of the three
+actual Gemini calls. This is an additional presentation/data-boundary feature, not a claim that
+10,000 real model calls were made. Counts, latency and usage are calculated from those real rows;
+no private project is made public. Server model/status/sort controls and no-network/no-private-scope
+contracts have **45** new focused cases; full local unit **418** and actual D1 **75** pass.
+New-source native/workerd/CI/live release gates are recorded separately in [verification](verification.md#recorded-real-showcase-split--local-implementation-2026-10-11-taipei).

@@ -1,5 +1,8 @@
 # Public simulated demo
 
+The main `/` entry now opens `/showcase`, the separate recorded-real measurement page.
+`/demo` remains the original full interactive simulated dataset; neither replaces the other.
+
 Open `/demo` without an account. It provides real persisted analytics, model comparison, server-side
 trace filters, cursor pagination and trace detail. All reads are constrained to the fixed `demo` project;
 there are no public project/key writes. The UI labels data and prices as **simulated / read-only**.
@@ -47,3 +50,33 @@ See [deployment](deployment.md) before changing a live database.
 5. For the real integration path, register separately, create your own project/key and run the SDK example.
 
 This demo is a deterministic product walkthrough, not a production traffic dataset or provider benchmark.
+
+## Recorded real measurements — separate public entry
+
+`/showcase` is the main portfolio entry. It presents the three previously verified genuine
+`gemini-3.5-flash-lite` REST operations, wrapped with the public SDK and persisted in D1. The
+owner approved publishing only model, duration, input/output token counts and status. A scoped
+read-only D1 projection verified the original `gemini-real-api` / `simulated: false` records before
+copying exactly those five fields into `apps/web/src/lib/showcase-data.ts`. The private project was
+not made public. Public sample numbers are newly derived ordinals, never private trace identifiers.
+
+The snapshot's actual durations are 1,286.598375 ms, 1,137.5750420000002 ms and 671.828917 ms;
+usage totals are 31 input / 81 output tokens. No values were expanded, jittered, regenerated or
+relabeled from the simulated seed. No new model call was required to publish this existing evidence.
+
+- Exact Next `GET /api/showcase` serves the immutable projection; it does not access D1, provider
+  credentials, sessions, the private BFF or another project's data at public runtime.
+- Model/status filters and recorded/ascending/descending latency sort run on the server. Queries
+  reject duplicate or unknown parameters, private scope/cursor arguments and unsupported values.
+- Empty matches remain empty; unavailable latency/usage stays null rather than fabricated zero.
+  Unknown costs are not shown as free. A failed fetch offers Retry, never a simulated fallback.
+- All three recorded calls succeeded; an error filter correctly yields no rows. The only recorded
+  model cannot establish a ranking. P95 is nearest-rank and equals the largest of three samples,
+  not an SLA, TTFT, provider-only execution time or production performance estimate.
+- The public response contains no account/project/source trace IDs, raw timestamps, prompts,
+  answers, credentials, error text, metadata or pricing. The isolated GET route uses no-store/nosniff;
+  private analytics retain their existing ownership/Origin/privacy controls.
+
+Both public screens have explicit **Real measurements** / **Simulated demo** links. The simulated
+Demo retains its original API-backed date filtering, multi-model comparisons and trace navigation.
+No schema change, remote seed, private-project sharing or paid-plan change is needed for this split.

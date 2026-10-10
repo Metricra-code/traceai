@@ -78,30 +78,38 @@ export function Shell({
   const router = useRouter();
   const cache = useQueryClient();
   const demo = basePath === '/demo';
+  const showcase = basePath === '/showcase';
+  const publicView = demo || showcase;
   const { theme, toggleTheme } = useTheme();
   const [logoutError, setLogoutError] = useState('');
   const session = useQuery({
     queryKey: ['session'],
     queryFn: ({ signal }) =>
       api<{ user: { id: string; email: string } }>('auth/session', { signal }),
-    enabled: !demo,
+    enabled: !publicView,
   });
   const projects = useQuery({
     queryKey: ['projects'],
     queryFn: ({ signal }) => api<{ items: Project[] }>('projects', { signal }),
-    enabled: !!project && !demo,
+    enabled: !!project && !publicView,
   });
-  const nav = [
-    { name: 'Overview', href: basePath, icon: LayoutDashboard },
-    { name: 'Traces', href: basePath && `${basePath}/traces`, icon: ListTree },
-    { name: 'Models', href: basePath && `${basePath}/models`, icon: Layers },
-    { name: 'Projects', href: '/projects', icon: Folder },
-    {
-      name: 'Settings',
-      href: !demo && basePath ? `${basePath}/settings` : undefined,
-      icon: Settings,
-    },
-  ];
+  const nav = showcase
+    ? [
+        { name: 'Overview', href: '#main-content', icon: LayoutDashboard },
+        { name: 'Measurements', href: '#measurements', icon: ListTree },
+        { name: 'Model summary', href: '#model-summary', icon: Layers },
+      ]
+    : [
+        { name: 'Overview', href: basePath, icon: LayoutDashboard },
+        { name: 'Traces', href: basePath && `${basePath}/traces`, icon: ListTree },
+        { name: 'Models', href: basePath && `${basePath}/models`, icon: Layers },
+        { name: 'Projects', href: '/projects', icon: Folder },
+        {
+          name: 'Settings',
+          href: !demo && basePath ? `${basePath}/settings` : undefined,
+          icon: Settings,
+        },
+      ];
   async function logout() {
     try {
       await api('auth/logout', { method: 'POST' });
@@ -117,7 +125,7 @@ export function Shell({
         Skip to main content
       </a>
       <aside className="sidebar">
-        <Link href="/demo" className="brand">
+        <Link href="/showcase" className="brand">
           <Activity size={23} />
           <span>
             TraceAI<span className="brand-dot">.</span>
@@ -137,7 +145,11 @@ export function Shell({
                       ? `${item.href}?${search}`
                       : item.href
                   }
-                  aria-current={pathname === item.href ? 'page' : undefined}
+                  aria-current={
+                    (showcase && item.name === 'Overview') || pathname === item.href
+                      ? 'page'
+                      : undefined
+                  }
                 >
                   <item.icon size={17} />
                   {item.name}
@@ -175,7 +187,7 @@ export function Shell({
         <div className="topbar">
           <div className="topbar-project">
             <Folder size={15} />
-            {project && !demo ? (
+            {project && !publicView ? (
               <select
                 aria-label="Project selector"
                 value={project.id}
@@ -188,9 +200,12 @@ export function Shell({
                 ))}
               </select>
             ) : (
-              <span>{project?.name ?? 'Your workspace'}</span>
+              <span>
+                {showcase ? 'Recorded measurements' : (project?.name ?? 'Your workspace')}
+              </span>
             )}
             {demo && <span className="demo-label">DEMO</span>}
+            {showcase && <span className="demo-label">REAL</span>}
           </div>
           <div className="topbar-actions">
             <button
@@ -202,7 +217,7 @@ export function Shell({
             >
               {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
             </button>
-            {demo ? (
+            {publicView ? (
               <Link className="button small-button" href="/register">
                 Create workspace <ArrowUpRight size={14} />
               </Link>
@@ -263,6 +278,16 @@ export function Shell({
           </p>
         )}
         <main id="main-content" className="main-content">
+          {publicView && (
+            <nav className="source-switch" aria-label="Data source">
+              <Link href="/showcase" aria-current={showcase ? 'page' : undefined}>
+                Real measurements
+              </Link>
+              <Link href="/demo" aria-current={demo ? 'page' : undefined}>
+                Simulated demo
+              </Link>
+            </nav>
+          )}
           {children}
         </main>
         <footer className="app-footer">

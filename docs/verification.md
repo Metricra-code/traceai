@@ -448,3 +448,39 @@ isolates; warm runs reuse HTTP cache, not Next client navigation. Timing include
 hydration and API waterfall. The tiny samples are not a controlled before/after comparison,
 CPU-savings percentage, provider benchmark or SLA. The public data remains visibly simulated;
 the earlier private three-call Gemini/112-token evidence was not regenerated during this rollout.
+
+## Recorded-real showcase split — local implementation (2026-10-11 Taipei)
+
+The owner approved a public projection of the already-verified three Gemini operations, with
+model, latency, token counts and status only. A scoped read-only D1 query checked the original
+source/simulated markers; only those five projected fields were copied into the public snapshot.
+No private project was shared, prompt/answer/key/metadata/trace/account ID copied, provider call
+made, row expanded or simulated seed relabeled. The main `/` now opens `/showcase`; `/demo`
+remains the separate 10,000-row simulated full-feature dataset.
+
+- Meaningful browser RED against the previous live release: root still redirected `/demo`,
+  not `/showcase`. This expected failure is not counted as a pass.
+- Privacy contract RED: default schema stripping accepted extra private fields; strict unknown-field
+  rejection made the regression green. **45** new focused schema/query/statistic/direct-route cases
+  pass, including no network/private access even with session/header canaries, exact public keys,
+  duplicate/unknown query 400, stable derived ordinals, null unknown usage and empty matches.
+- Full local unit **418/418** in 22 files, **75 actual Worker-D1**, whole-workspace strict types,
+  lint and format passed. The core SDK/package/exports, lockfile, API Worker and database are unchanged.
+- Independent review caught section navigation dropping filters; fragment-only section links and
+  a browser sort/filter-retention regression preserve the applied public query. The original root
+  journey now verifies the requested real entry rather than assuming the earlier Demo redirect.
+
+- The first full native run was **29 passed / 1 failed**: a synchronous hash assertion checked
+  the URL before Next section navigation completed. The sorted query and table were already
+  preserved. Waiting for the actual hash with the existing default assertion deadline made
+  the focused four journeys pass; no application timer, extra retry or wider timeout was added.
+- Final full native **30/30 (2.2m)** and guarded built-workerd **30/30 (47.0s)** passed, including
+  the four new showcase journeys, real server filters/sort, source-switch privacy, empty/retry
+  states, narrow/desktop layouts and both-theme automated AA. The extended shell test proves
+  `/showcase` HTML is a cache hit in workerd while private BFF reads remain uncached.
+- OpenNext build, local static-cache population and the fail-closed compiled environment guard
+  passed. Both independent boundary/security reviews found no actionable blocker.
+
+At this local checkpoint, published-source CI, deployment and repeated live acceptance are still
+separate pending gates. The historical release results above do not prove the new page.
+[Data/API boundary](demo.md#recorded-real-measurements--separate-public-entry).
