@@ -5,9 +5,11 @@ Manual Cloudflare deployment; no auto-deploy and no paid model calls. Bun `1.4.0
 ## Environments
 
 - API: [traceai-api](https://traceai-api.traceai-api.workers.dev)
-- Web: [public demo](https://traceai-web.traceai-api.workers.dev/demo) (dated live results and current limitations below)
+- Web: [recorded-real entry](https://traceai-web.traceai-api.workers.dev/showcase),
+  [separate simulated Demo](https://traceai-web.traceai-api.workers.dev/demo) (dated live results and current limitations below)
 - D1: `traceai-db`, ID `2cd82526-1d69-445b-9cd4-46229ed87281` (resource IDs are public configuration, not credentials).
 - Web `TRACEAI_API` service binding calls API; browsers use the same-origin `/api/*` proxy. Cookies have no Domain attribute and stay on the web host.
+- Exact `/api/showcase` is an isolated web-local recorded snapshot, not a proxied/private API route.
 - Production configuration fails closed with `ENVIRONMENT=production`, exact `WEB_ORIGIN`, HttpOnly/Secure/SameSite=Lax seven-day session cookies. `bun run dev` explicitly overrides origin/environment for local HTTP only.
 
 ## Password hashing without weakening security
@@ -196,3 +198,27 @@ resource/transport failures fixed or establish CPU savings. [Detailed evidence](
 The earlier failures remain evidence: this passing run does not establish their CPU-versus-memory
 cause, permanent resolution or availability SLA. See the [live result and bounded measurement](verification.md#shell-cache-rollout--live-acceptance-2026-10-11-taipei).
 A documentation-only evidence update does not require rebuilding or redeploying this runtime artifact.
+
+## Recorded-real entry rollout (2026-10-11 Taipei)
+
+Runtime [`1ae1602`](https://github.com/Metricra-code/traceai/commit/1ae160292e304756fd4631dbf2639fbabb0cecde)
+passed [new CI](https://github.com/Metricra-code/traceai/actions/runs/38073302408) before a web-only rollout:
+**418 unit / 75 actual Worker-D1 / 30 native / 30 built-workerd** plus guarded builds and packed consumers.
+The `/` entry opens the recorded-real `/showcase`; `/demo` remains a separate simulated dataset.
+
+- Active web: **`b6713198-4717-4eff-a8f0-12baa4abb8fc`**, 100% traffic. API stays
+  **`245c7013-88df-48b7-b228-eaf6e5382d27`**, 100%. Existing service/static-asset bindings are unchanged.
+- **1,345** tested OpenNext file SHA-256 hashes matched before and after upload; nine populated
+  cache assets retained. Full live HTTPS **30/30 (2.1m)** and repeated three-operation SDK/OTel
+  smoke passed. The smoke operations are synthetic, not new Gemini calls.
+- No migration, pricing import, remote reseed, private-project sharing, new resource, paid-plan
+  change, provider call or npm republish. The public snapshot copies only the approved operational
+  fields from the previously verified three real operations; it never queries private D1 at runtime.
+- To roll back this presentation split, restore prior verified web
+  **`e6d5567c-f54d-45a8-b0a8-e040fce958b3`** while retaining the current API. No schema/data rollback
+  is needed. That restores the earlier main Demo redirect; code rollback does not erase public Git history.
+
+[Detailed release evidence](verification.md#recorded-real-showcase--published-and-live-2026-10-11-taipei)
+retains historical failures and limits. A recorded three-call snapshot and one bounded passing run
+are not real-time monitoring, model-quality evidence, a soak test or an SLA. Later documentation-only
+evidence/screenshot updates do not change the deployed runtime and need no additional deployment.

@@ -8,16 +8,17 @@ different kinds of evidence. No unchecked release gate is a completion claim.
 
 ## Latest verified runtime release (2026-10-11 Taipei)
 
-Runtime source `f140c065884e989464e044e49dcfb530c4c5cb2b` passed its
-[new CI](https://github.com/Metricra-code/traceai/actions/runs/38070087528): **373 unit / 75 actual
-Worker-D1 / 26 native / 26 built-workerd**, including builds and packed Bun/Node consumers. The
-exact guarded web artifact was deployed only after that success; **26/26 live HTTPS journeys**
-and the repeated SDK/OTel smoke then passed. [Active versions and rollback](deployment.md#verified-shell-cache-rollout-2026-10-11-taipei).
+Runtime source `1ae160292e304756fd4631dbf2639fbabb0cecde` passed its
+[new CI](https://github.com/Metricra-code/traceai/actions/runs/38073302408): **418 unit / 75 actual
+Worker-D1 / 30 native / 30 built-workerd**, including builds and packed Bun/Node consumers. The
+exact guarded web artifact was deployed only after that success; **30/30 live HTTPS journeys**
+and the repeated synthetic SDK/OTel smoke then passed. [Active versions and rollback](deployment.md#recorded-real-entry-rollout-2026-10-11-taipei).
 
 The first hardening deployment's **20/25** live result remains recorded, not relabeled as a pass.
-The cache follow-up adds no private-data cache, paid resource, schema change, model call or npm
-republish. Bounded post-deployment measurements and unresolved resource-cause/SLA limitations are
-in [verification](verification.md#shell-cache-rollout--live-acceptance-2026-10-11-taipei).
+The new public recorded-real entry and separate Demo add no private-data cache, paid resource,
+schema change, model call or npm republish. Historical post-deployment measurements and unresolved
+resource-cause/SLA limitations are retained in
+[verification](verification.md#recorded-real-showcase--published-and-live-2026-10-11-taipei).
 Historical release gates below describe their dated sources, not today's test counts.
 
 ## Original requirements, section by section
@@ -42,7 +43,7 @@ Historical release gates below describe their dated sources, not today's test co
 | §11    | 10,000 deterministic multi-model/30-day simulated traces and read-only public demo                | Generator, seed, demo routes, live 10,000-row evidence                                                       | Fictional prices remain isolated; existing remote demo was not reseeded during upgrade               |
 | §12    | Input/auth/tenant/body/rate/CORS/logging/SQL/XSS/secret/privacy security                          | Origin-checked same-origin BFF; owner tests; parameterized SQL; generic errors; no raw capture               | Explicit bounded summary policy and source/bundle/tarball secret review completed                    |
 | §13    | Repeatable SDK/API/dashboard performance evidence; <3s and <500ms targets                         | SDK stub benchmark and 20-sample warm API benchmark existed                                                  | Reproducible browser/API/concurrent-SDK measurements with explicit scope and limitations             |
-| §14    | Vitest unit, actual Worker/D1 integration and meaningful Playwright journeys                      | Baseline 103 unit, 59 integration, 7 E2E cases in dev/workerd/live                                           | Latest 373 unit / 75 actual D1 / 26 journeys per browser runtime; results in verification.md         |
+| §14    | Vitest unit, actual Worker/D1 integration and meaningful Playwright journeys                      | Baseline 103 unit, 59 integration, 7 E2E cases in dev/workerd/live                                           | Latest 418 unit / 75 actual D1 / 30 journeys per browser runtime; results in verification.md         |
 | §15    | Installation/env/migration/seed/SDK/API/architecture/deployment/troubleshooting docs              | README plus dedicated architecture/API/SDK/demo/deployment/verification docs                                 | Troubleshooting, pricing, OTel, operator and interview guides added; release evidence below          |
 | §16    | Actions install/lint/types/unit/integration/build, no automatic deployment                        | Existing CI additionally runs dev and built-workerd E2E                                                      | Packed-consumer and AA checks included; actual published CI is a separate release gate               |
 | §17/20 | Complete source, SDK/API/dashboard/migrations/seed/tests/docs and verified release                | Independent public repository and live Workers                                                               | All current release gates below must pass before declaring the goal complete                         |
@@ -54,8 +55,8 @@ local and deployed evidence in [verification](verification.md), not merely the e
 
 | #   | Original acceptance                 | Current evidence                                                                     |
 | --- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| 1   | Entire project runs locally         | Frozen Bun setup, migrated/priced/seeded local D1,26 native journeys                 |
-| 2   | Public dashboard deployed           | Recorded current web version and26 live HTTPS journeys                               |
+| 1   | Entire project runs locally         | Frozen Bun setup, migrated/priced/seeded local D1, 30 native journeys                |
+| 2   | Public dashboard deployed           | Recorded current web version and 30 live HTTPS journeys                              |
 | 3   | No paid dependency                  | Free Workers/D1/private SQLite DO, mock provider/no paid AI calls                    |
 | 4   | Create project                      | Real account/project E2E and live smoke                                              |
 | 5   | Generate/revoke keys                | One-time reveal, rotate/revoke/old-key rejection, real owner tests                   |
@@ -69,11 +70,11 @@ local and deployed evidence in [verification](verification.md), not merely the e
 | 13  | View trace detail                   | Actual operation timing/usage/summary/provenance browser checks                      |
 | 14  | Model comparisons                   | Requests/Average/P95/success/tokens/cost table and provider-qualified charts         |
 | 15  | Unknown pricing handled             | Null total, labeled known subtotal and isolated fictional prices                     |
-| 16  | Anonymous public demo               | Real read-only demo endpoints/browser flows                                          |
+| 16  | Anonymous public demo               | Read-only simulated Demo; separate recorded-real public entry                        |
 | 17  | Simulated label                     | UI markers and deterministic10,000-row seed; no fake production traffic              |
 | 18  | Auth/project isolation tested       | Real cross-owner/Origin/session/key Worker and browser assertions                    |
 | 19  | TypeScript checks pass              | Strict root/scripts/E2E and all workspace commands                                   |
-| 20  | Unit/integration tests pass         | 373 unit /75 actual workerd-D1 cases                                                 |
+| 20  | Unit/integration tests pass         | 418 unit / 75 actual workerd-D1 cases                                                |
 | 21  | Production build succeeds           | All workspace/OpenNext bundles and actual built-workerd journeys                     |
 | 22  | Installation/SDK README             | Reproducible Bun setup, workspace/tarball use and no-credential examples             |
 | 23  | No committed secrets                | Source/bundle/tarball review; ignored restricted backup/artifacts; normal hooks      |
@@ -170,4 +171,8 @@ actual Gemini calls. This is an additional presentation/data-boundary feature, n
 10,000 real model calls were made. Counts, latency and usage are calculated from those real rows;
 no private project is made public. Server model/status/sort controls and no-network/no-private-scope
 contracts have **45** new focused cases; full local unit **418** and actual D1 **75** pass.
-New-source native/workerd/CI/live release gates are recorded separately in [verification](verification.md#recorded-real-showcase-split--local-implementation-2026-10-11-taipei).
+New-source `1ae1602` [CI passed](https://github.com/Metricra-code/traceai/actions/runs/38073302408)
+with **418 unit / 75 actual Worker-D1 / 30 native / 30 built-workerd** before the web-only deployment.
+Full deployed HTTPS **30/30** and repeated synthetic SDK/OTel smoke passed; API/data/SDK version
+remain unchanged. Source, local, CI and live gates are distinct in
+[verification](verification.md#recorded-real-showcase--published-and-live-2026-10-11-taipei).

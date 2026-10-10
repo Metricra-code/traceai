@@ -91,7 +91,7 @@ checkout because placeholders can be evicted again. The first full live suite wa
 a passing acceptance release. The subsequent cache rollout below passed the expanded live suite;
 the initial result and resource/transport limitations remain in [verification](verification.md#published-source-rollout-and-first-live-results-2026-10-11-taipei).
 
-## Current shell-cache follow-up gates (2026-10-11)
+## Historical shell-cache follow-up gates (2026-10-11)
 
 - [x] Minimal read-only static-assets cache/interception and guarded build-time population implemented;
       no private API caching, R2, revalidation queue/tag cache, paid-plan change or npm republish.
@@ -106,7 +106,7 @@ the initial result and resource/transport limitations remain in [verification](v
 - [x] README/acceptance/deployment/verification and safe measurement evidence reconciled with
       dated runtime-source CI, active versions and explicit operational limitations.
 
-[Latest live evidence](verification.md#shell-cache-rollout--live-acceptance-2026-10-11-taipei) is a
+[That dated live evidence](verification.md#shell-cache-rollout--live-acceptance-2026-10-11-taipei) is a
 bounded passing acceptance run, not proof of the earlier resource cause, permanent Error 1102
 resolution, a CPU-savings claim or an SLA. Original cloud Git status can still stall. The core npm
 SDK remains `@akai_80percent/traceai-sdk@0.1.0`; the optional OTel package remains unpublished.
@@ -122,8 +122,10 @@ SDK remains `@akai_80percent/traceai-sdk@0.1.0`; the optional OTel package remai
 - [x] Meaningful RED/GREEN, **418 unit / 75 actual Worker-D1**, strict types/lint/format locally green.
 - [x] Full native **30/30** and guarded built-workerd **30/30** journeys, including recorded-real
       server filters/source switch/privacy/responsive/AA and cached shell regression.
-- [ ] Published-source CI.
-- [ ] CI-gated exact web deployment, repeated live acceptance and final evidence reconciliation.
+- [x] Published-source `1ae1602` [CI passed](https://github.com/Metricra-code/traceai/actions/runs/38073302408):
+      **418 unit / 75 Worker-D1 / 30 native / 30 built-workerd** plus builds/packed consumers.
+- [x] CI-gated exact web deployment; API unchanged. Full live **30/30** and synthetic SDK/OTel
+      smoke passed; README, acceptance, deployment, verification and interview guide reconciled.
 
 This public snapshot is real historical workflow evidence, not simulated traffic or a model benchmark.
 Future private operations are not published automatically; each update needs an explicit reviewed

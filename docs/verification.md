@@ -481,6 +481,41 @@ remains the separate 10,000-row simulated full-feature dataset.
 - OpenNext build, local static-cache population and the fail-closed compiled environment guard
   passed. Both independent boundary/security reviews found no actionable blocker.
 
-At this local checkpoint, published-source CI, deployment and repeated live acceptance are still
-separate pending gates. The historical release results above do not prove the new page.
+At that local checkpoint, published-source CI, deployment and repeated live acceptance were still
+separate pending gates. The completed results follow below; older release results alone did not prove the new page.
 [Data/API boundary](demo.md#recorded-real-measurements--separate-public-entry).
+
+## Recorded-real showcase — published and live (2026-10-11 Taipei)
+
+Runtime source [`1ae1602`](https://github.com/Metricra-code/traceai/commit/1ae160292e304756fd4631dbf2639fbabb0cecde)
+passed [its new CI](https://github.com/Metricra-code/traceai/actions/runs/38073302408) before web deployment:
+**418 unit / 75 actual Worker-D1 / 30 native (2.2m) / 30 built-workerd (48.7s)**. Frozen Bun install,
+format/lint/strict types, workspace/OpenNext builds, environment guard and isolated packed Bun/Node
+consumers passed. CI did not call a model, deploy, publish npm or mutate production data.
+
+- Web **`b6713198-4717-4eff-a8f0-12baa4abb8fc`** receives 100% traffic. API remains
+  **`245c7013-88df-48b7-b228-eaf6e5382d27`**, also 100%. All **1,345** tested OpenNext file hashes
+  matched immediately before and after deployment; **nine** populated cache assets and bindings
+  were retained. No database/schema/pricing/reseed, paid resource, provider call or npm republish.
+- Full deployed HTTPS **30/30 (2.1m)** passed with the cache-hit assertions enabled. New journeys
+  verify the root real entry, exact three-row/five-field projection, 31 input / 81 output tokens,
+  actual server sort/filter and empty matches, section query retention, two-way Demo switch with
+  no private session/project reads, rejected private scopes/writes, Retry without fake fallback,
+  320/390/768/1440 layouts and both-theme automated AA checks. All earlier journeys remain covered.
+- Repeated live SDK/OTel smoke passed with **three synthetic deployment-verification operations**,
+  original result/error identity, D1 read-back, safe pricing/summary/privacy, replay and revocation.
+  Own project/keys were deleted and session logged out; disposable accounts remain. These are
+  not additional real-model calls. The public real snapshot still contains only the prior three.
+- Boundary/security reviews found no blocker. The 21 reviewed source files were synchronized
+  to the original checkout only after baseline hash checks, with Git metadata preserved. Its prior
+  cloud tracked-status limitation is not claimed repaired; private SQL/credentials/artifacts were
+  not copied into public evidence.
+- Fresh unauthenticated live Chromium captures at 320/1440 in both themes show separate real/Demo
+  source labels with no page overflow, console/page errors or private requests. The main recorded-real
+  [production screenshot](assets/showcase.png) was visually checked and replaces the old simulated
+  README hero; the historical Demo screenshot is retained, not relabeled as real measurements.
+
+This is bounded release acceptance, not a production soak, live traffic feed, model-quality benchmark
+or SLA. The earlier 20/25 release failure and first 29/30 local timing-assertion result remain above.
+Future private calls are not published automatically; snapshot updates need another reviewed
+owner-approved projection. [Deployment and rollback](deployment.md#recorded-real-entry-rollout-2026-10-11-taipei).

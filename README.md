@@ -10,14 +10,14 @@ and project-scoped analytics on Cloudflare Workers/D1. No paid AI credentials ar
 [API health](https://traceai-api.traceai-api.workers.dev/health) ·
 [GitHub source](https://github.com/Metricra-code/traceai)
 
-![Historical simulated-demo dashboard with 10,000 traces, P95 latency and server-backed analytics](docs/assets/dashboard.png)
+![Deployed recorded-real showcase: three Gemini calls, 112 tokens and clearly labeled historical measurements](docs/assets/showcase.png)
 
-Latest verified runtime release (2026-10-11 Taipei): **373 unit tests**, **75 actual Worker/D1 cases**,
-and **26/26 Playwright journeys in each of native Next, built-workerd and deployed HTTPS modes**.
-[Runtime-source CI](https://github.com/Metricra-code/traceai/actions/runs/38070087528) passed for `f140c06`
+Latest verified runtime release (2026-10-11 Taipei): **418 unit tests**, **75 actual Worker/D1 cases**,
+and **30/30 Playwright journeys in each of native Next, built-workerd and deployed HTTPS modes**.
+[Runtime-source CI](https://github.com/Metricra-code/traceai/actions/runs/38073302408) passed for `1ae1602`
 before manual deployment. The repeated live SDK + genuine OpenTelemetry → Worker → D1 smoke verifies
 sourced pricing, privacy, deduplication and revoked keys using synthetic verification operations.
-The [verification record](docs/verification.md#shell-cache-rollout--live-acceptance-2026-10-11-taipei)
+The [verification record](docs/verification.md#recorded-real-showcase--published-and-live-2026-10-11-taipei)
 retains the initial failed rollout and measurement limits; a passing run is not an SLA.
 
 ## Real measurements and a separate simulated demo
@@ -94,7 +94,8 @@ bun run db:seed
 bun run dev
 ```
 
-Open [the read-only demo](http://localhost:3000/demo), then choose **Last 30 days** to see all 10,000 traces.
+Open [the recorded-real entry](http://localhost:3000/showcase), then switch to
+[the separate read-only demo](http://localhost:3000/demo) and choose **Last 30 days** to see all 10,000 simulated traces.
 [Create an account](http://localhost:3000/register), create a project, and generate an ingestion key to
 try the real SDK → Worker → D1 path. Follow [SDK integration](docs/sdk.md) for the mock-provider example.
 [Worker health](http://127.0.0.1:8787/health) confirms the local D1 connection.
