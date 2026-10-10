@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, type FormEvent } from 'react';
+import { useMemo, type FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useReactTable, getCoreRowModel, flexRender, type ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
@@ -7,6 +7,7 @@ import type { ModelComparison, Trace, TracePage } from '@traceai/shared';
 import { useAnalytics } from '@/components/shell';
 import { Empty, Failure, Loading, Status, Title, CopyButton } from '@/components/ui';
 import { ApiError, api, cost, integer, latency, utc } from '@/lib/api';
+import type { TraceFilters } from '@/lib/navigation';
 function pricingSource(value: string): string | undefined {
   try {
     const url = new URL(value);
@@ -30,18 +31,24 @@ export function TracesView() {
   );
 }
 function TraceExplorer() {
-  const { apiBase, query, basePath } = useAnalytics();
-  const [filters, setFilters] = useState({
-    provider: '',
-    model: '',
-    status: '',
-    traceId: '',
-    sort: 'newest',
-  });
-  const [cursors, setCursors] = useState<string[]>([]);
+  const {
+    apiBase,
+    query,
+    basePath,
+    navigation,
+    href,
+    updateFilters,
+    pagination,
+    nextPage,
+    previousPage,
+    firstPage,
+  } = useAnalytics();
+  const { provider, model, status, traceId, sort } = navigation;
+  const filters = { provider, model, status, traceId, sort };
   const options = useQuery({
     queryKey: [apiBase, 'models', query],
-    queryFn: () => api<{ items: ModelComparison[] }>(`${apiBase}/models?${query}`),
+    queryFn: ({ signal }) =>
+      api<{ items: ModelComparison[] }>(`${apiBase}/models?${query}`, { signal }),
   });
   const manualFilters = options.error instanceof ApiError && options.error.status === 422;
   const params = new URLSearchParams(query);
@@ -49,20 +56,18 @@ function TraceExplorer() {
     if (value) params.set(key, value);
   });
   params.set('limit', '25');
-  const cursor = cursors.at(-1);
+  const cursor = navigation.cursor;
   if (cursor) params.set('cursor', cursor);
   const search = params.toString();
   const result = useQuery({
     queryKey: [apiBase, 'traces', search],
-    queryFn: () => api<TracePage>(`${apiBase}/traces?${search}`),
+    queryFn: ({ signal }) => api<TracePage>(`${apiBase}/traces?${search}`, { signal }),
   });
-  function update(key: keyof typeof filters, value: string) {
-    setFilters((previous) => ({
-      ...previous,
+  function update(key: keyof TraceFilters, value: string) {
+    updateFilters({
       [key]: value,
       ...(key === 'provider' ? { model: '' } : {}),
-    }));
-    setCursors([]);
+    });
   }
   function searchId(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,12 +76,10 @@ function TraceExplorer() {
   function applyExactFilters(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const fields = new FormData(event.currentTarget);
-    setFilters((previous) => ({
-      ...previous,
+    updateFilters({
       provider: String(fields.get('provider') ?? '').trim(),
       model: String(fields.get('model') ?? '').trim(),
-    }));
-    setCursors([]);
+    });
   }
   const columns = useMemo<ColumnDef<Trace>[]>(
     () => [
@@ -86,7 +89,7 @@ function TraceExplorer() {
         cell: (info) => (
           <Link
             className="trace-link mono"
-            href={`${basePath}/traces/${encodeURIComponent(String(info.getValue()))}`}
+            href={href(`${basePath}/traces/${encodeURIComponent(String(info.getValue()))}`)}
           >
             {String(info.getValue())}
           </Link>
@@ -128,7 +131,7 @@ function TraceExplorer() {
         cell: (info) => <span className="mono small">{utc(String(info.getValue()))}</span>,
       },
     ],
-    [basePath],
+    [basePath, href],
   );
   const table = useReactTable({
     data: result.data?.items ?? [],
@@ -148,6 +151,7 @@ function TraceExplorer() {
                 name="provider"
                 aria-label="Provider filter"
                 defaultValue={filters.provider}
+                key={filters.provider}
                 maxLength={120}
                 placeholder="Exact provider, or leave blank"
               />
@@ -158,6 +162,7 @@ function TraceExplorer() {
                 name="model"
                 aria-label="Model filter"
                 defaultValue={filters.model}
+                key={filters.model}
                 maxLength={120}
                 placeholder="Exact model, or leave blank"
               />
@@ -174,6 +179,10 @@ function TraceExplorer() {
                 onChange={(e) => update('provider', e.target.value)}
               >
                 <option value="">All providers</option>
+                {filters.provider &&
+                  !options.data?.items.some((item) => item.provider === filters.provider) && (
+                    <option value={filters.provider}>{filters.provider} (exact filter)</option>
+                  )}
                 {Array.from(new Set(options.data?.items.map((item) => item.provider))).map(
                   (item) => (
                     <option key={item}>{item}</option>
@@ -189,6 +198,12 @@ function TraceExplorer() {
                 onChange={(e) => update('model', e.target.value)}
               >
                 <option value="">All models</option>
+                {filters.model &&
+                  !options.data?.items.some(
+                    (item) =>
+                      item.model === filters.model &&
+                      (!filters.provider || item.provider === filters.provider),
+                  ) && <option value={filters.model}>{filters.model} (exact filter)</option>}
                 {options.data?.items
                   .filter((item) => !filters.provider || item.provider === filters.provider)
                   .map((item) => (
@@ -226,7 +241,15 @@ function TraceExplorer() {
         <form onSubmit={searchId}>
           <label htmlFor="trace-search">Exact trace ID</label>
           <div className="search-field">
-            <input id="trace-search" name="traceId" placeholder="trace_…" maxLength={128} />
+            <input
+              id="trace-search"
+              name="traceId"
+              placeholder="trace_…"
+              maxLength={128}
+              defaultValue={filters.traceId}
+              key={filters.traceId}
+              pattern="[a-zA-Z0-9_\-]*"
+            />
             <button type="submit">Search</button>
           </div>
         </form>
@@ -246,7 +269,12 @@ function TraceExplorer() {
         options.error && <Failure error={options.error} retry={() => void options.refetch()} />
       )}{' '}
       {result.error ? (
-        <Failure error={result.error} retry={() => void result.refetch()} />
+        <>
+          <Failure error={result.error} retry={() => void result.refetch()} />
+          {cursor && result.error instanceof ApiError && result.error.status === 400 && (
+            <button onClick={firstPage}>Reset pagination</button>
+          )}
+        </>
       ) : result.isPending ? (
         <Loading />
       ) : !result.data.items.length ? (
@@ -285,20 +313,26 @@ function TraceExplorer() {
       )}
       <div className="pagination">
         <span className="muted small">
-          Page {cursors.length + 1} · {result.data?.items.length ?? 0} traces
+          {pagination.page === undefined ? 'Current page' : `Page ${pagination.page}`} ·{' '}
+          {result.data?.items.length ?? 0} traces
         </span>
         <div>
-          <button
-            disabled={!cursors.length || result.isFetching}
-            onClick={() => setCursors((previous) => previous.slice(0, -1))}
-          >
-            Previous page
-          </button>
+          {cursor && pagination.previous === undefined ? (
+            <button disabled={result.isFetching} onClick={firstPage}>
+              First page
+            </button>
+          ) : (
+            <button
+              disabled={pagination.previous === undefined || result.isFetching}
+              onClick={previousPage}
+            >
+              Previous page
+            </button>
+          )}
           <button
             disabled={!result.data?.nextCursor || result.isFetching}
             onClick={() => {
-              if (result.data?.nextCursor)
-                setCursors((previous) => [...previous, result.data.nextCursor!]);
+              if (result.data?.nextCursor) nextPage(result.data.nextCursor);
             }}
           >
             Next page
@@ -309,17 +343,18 @@ function TraceExplorer() {
   );
 }
 export function TraceDetail({ traceId }: { traceId: string }) {
-  const { apiBase, basePath, demo } = useAnalytics();
+  const { apiBase, basePath, demo, href } = useAnalytics();
   const result = useQuery({
     queryKey: [apiBase, 'trace', traceId],
-    queryFn: () => api<Trace>(`${apiBase}/traces/${encodeURIComponent(traceId)}`),
+    queryFn: ({ signal }) =>
+      api<Trace>(`${apiBase}/traces/${encodeURIComponent(traceId)}`, { signal }),
   });
   if (result.error) return <Failure error={result.error} retry={() => void result.refetch()} />;
   if (!result.data) return <Loading />;
   const trace = result.data;
   return (
     <>
-      <Link className="back-link" href={`${basePath}/traces`}>
+      <Link className="back-link" href={href(`${basePath}/traces`)}>
         ← All traces
       </Link>
       <Title eyebrow="OPERATION INSPECTOR" subtitle={trace.name}>

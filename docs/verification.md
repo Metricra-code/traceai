@@ -5,7 +5,7 @@ workerd/D1 and Chromium **156.0.8078.4**. This verifies the full supplied specif
 plus the optional GenAI OpenTelemetry exporter, not just the earlier baseline MVP.
 Local checks, live runtime, measurements and remote CI are distinct kinds of evidence.
 
-## Current verified release
+## Verified full-product baseline (2026-10-09)
 
 | Check                               | Actual result                                                                                                                                                                  |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -181,3 +181,180 @@ Live smoke/E2E write only disposable private test projects, not the public demo.
 still consume Free quota; keep their sample caps, inspect [operations](operations.md), and never remote
 reseed or enable paid resources merely to manufacture a green benchmark. CI runs locally without
 automatic deployment and uploads failure artifacts only from disposable local environments.
+
+## Continued strengthening — local work, 2026-10-10
+
+The earlier release/CI evidence is historical evidence for its recorded revisions, **not proof of
+these uncommitted changes**. This slice has not been published, pushed or deployed. The public
+SDK remains the separately verified npm `0.1.0`; no real model calls or additional production/provider
+credential creation were performed in this slice. Browser tests create only disposable local keys.
+
+### Evidence-led changes
+
+- **Investigation continuity:** validated UTC window, trace filters, sort and current cursor in
+  dashboard URLs. Detail / All traces, browser Back, reload and shared views retain the query.
+  Trace filters apply to the trace explorer; Overview / Models use the selected UTC window.
+  Cursor predecessors live only in the frame, bounded to four scopes / 40 recent entries per scope.
+  A shared cursor without known history shows `Current page` and `First page`, not invented page
+  numbers. Filter/window changes reset the cursor. No credentials or permanent browser storage.
+- **Current reads only:** all 12 query functions consume the query signal. Intentional aborts do
+  not become offline alerts. This cancels obsolete browser transport; it does **not** prove that
+  an already-started Worker/D1 query stops. Preset refresh does not also refetch the old snapshot;
+  custom refresh keeps its exact window and URL.
+- **Cursor compatibility:** the former 2,048-character cap could reject the API's own cursor after
+  JSON-escaping valid labels. The canonical v1 maximum is derived as 3,608 characters, with
+  over-budget input rejected before decoding. Existing project/filter/sort scope checks remain.
+- **OTel demo deadline alignment:** both provider force-flush and processor export deadlines use
+  90s for the tiny two-event demo. Raising only the processor deadline still timed out at the
+  provider's default 30s. These are not universal multi-batch/drain guarantees. Core SDK published
+  vs unpublished optional adapter documentation is reconciled.
+- **Linear provider aggregation:** one Map pass replaces a nested model-list scan, preserving
+  first-seen order, zero totals, prototype-like provider labels and immutable inputs. Offline
+  assertions on actual helper source show identical output at 1,000 distinct providers with
+  1,000 label reads vs 1,001,000 for the previous expression; the 20,000-item case reads each
+  provider once. These are algorithmic-work observations, not measured UI/network speedups.
+- **Related continuity edges:** the inline model-comparison link retains the snapshot, and
+  shared exact provider/model values stay visible even when suggestions contain no matching group.
+- **History editor reset:** unapplied custom-date drafts/errors are cleared when browser history
+  restores another URL snapshot; the persistent frame, query cache and pagination history remain.
+- **Native trace-ID validation:** JSX requires one literal backslash in the HTML pattern. The old
+  double backslash was invalid under the browser's `v` regex flag and let `bad/id` submit silently.
+  The browser regression also checks legal hyphens/underscores and clearing the search.
+- **Clean-checkout type boundary:** the real OTel demo entrypoint regression exposes the adapter's
+  own public import during typechecking. A type-only source alias resolves it before `dist` exists;
+  package exports, runtime imports and npm versions are unchanged.
+
+### Actually completed focused checks
+
+- API cancellation boundary: **5/5** focused Vitest tests passed after a real failing abort-identity
+  regression; native QueryObserver unsubscribe is exercised with stub transport.
+- URL/history helper: **14/14** focused cases passed; invalid/duplicate boundaries, canonical
+  dates, cursor cap, isolated scopes and bounded history are covered.
+- Analytics query boundary: **22/22** focused unit cases passed. Real Worker/D1 newest/oldest
+  continuation regressions failed with HTTP 400 before the fix; **75/75** actual integration cases
+  passed afterwards. No migrations, pricing imports, quota increases or remote writes.
+- Runnable OTel entrypoint: real BasicTracerProvider / BatchSpanProcessor plus source exporter,
+  fake time and stub HTTP `429 → 202` passed the deadline regression. The focused SDK/OTel/Gemini
+  offline suite was **157/157**, adapter **23/23**. It proves two HTTP-acknowledged events, not D1
+  storage or paid-provider traffic.
+- Actual native Playwright report at **2026-10-10 05:12 Taipei** confirms **2/2**, no retries,
+  failures or skips: investigation continuity and refresh request counts. The first uses real
+  read-only local demo endpoints; the private refresh scenario explicitly mocks its API responses.
+  The newer inline-link / missing-suggestion / cancellation cases were not part of that earlier
+  2/2 result; later current-source runs are recorded below.
+- The custom-editor/history case was subsequently reproduced at the native browser seam:
+  Back expected `7` but received `custom`. The surgical reset then passed the strengthened
+  **1/1** case, including invalid draft/error, Back/Forward and reseeding from the restored URL.
+- Native trace-ID regression failed with `patternMismatch: false` for `bad/id` before the fix.
+  After the fix, trace validation and actual obsolete-request cancellation passed **2/2** in
+  the same-source non-cloud copy. Cancellation requires `net::ERR_ABORTED` before route cleanup.
+- A clean frozen-install typecheck exposed **TS2307** in the OTel actual-entrypoint test.
+  The focused adapter/demo checks passed with `dist` still absent after the type-only fix;
+  the subsequent full workspace typecheck passed.
+- Current full native first run was **22 passed / 2 failed**, not a release pass. The management
+  fixture now explicitly proves the pre-ingestion query cutoff keeps the count at zero, then Refresh
+  advances the cutoff while preserving a 24h preset and exposes two real SDK events; the revised
+  full management journey passed **1/1**. The error/retry fixture must keep its injected 503 until
+  the explicit retry, rather than consume it on React's canceled development probe; the corrected
+  named loading/error/retry/empty-state journey passed **1/1** without weakening its assertions.
+- Final full browser runs passed **24/24 native Next** (2.2m) and **24/24 built-workerd** (41.0s,
+  `CI=1`, Node22.22.0, normal command without debug). They include the new regressions, real local
+  SDK ingestion, key rotation/revocation, mobile widths and automated AA checks. Explicitly mocked
+  loading/error/empty/422 scenarios remain identified as such; they are not real provider traffic.
+  An earlier local Node24 startup attempt exited before any tests. A diagnostic run then passed
+  24/24, followed by the normal Node22 full run above. The first startup failure's cause was not
+  established; no assertion was weakened and no permanent startup-flake fix is claimed.
+- Scoped frontend ESLint and explicit-file formatting passed. Additional pure provider-aggregation
+  assertions passed using Node22.22.0 type stripping while normal workspace commands were blocked;
+  this is **not substituted** for the pending full Bun-orchestrated checks / Vitest tests.
+
+### Baseline measurement and remaining gates
+
+The read-only production seven-day demo benchmark at **2026-10-09T21:07:17.754Z** measured
+fresh-context usability **1,752 / 1,636 / 1,577ms** (P95 1,752ms), and same-context visits
+**1,517 / 1,009 / 969ms**. Desktop Chromium156 / 1440×1040, unthrottled, three samples per mode.
+This is a before observation, not a new-release result, cold-edge proof, mobile-network benchmark
+or SLA. No after-deployment acceleration percentage is claimed.
+
+Finder Download Now restored the three exact placeholder files: original bytes were read and
+Foundation reported `NSURLUbiquitousItemDownloadingStatusCurrent`. The original workspace then
+passed frozen install, full format/lint/types, **369 unit / 75 actual Worker-D1** tests. macOS later
+evicted `packages/config/tsconfig.base.json` again; original dev-route reads and Git status stalled.
+An accepted download is not a permanent residency guarantee. No unread placeholder was overwritten,
+ignore/type rule removed, unrelated file deleted, or system File Provider service restarted.
+
+Continued checks on **2026-10-11 Taipei** use a credential-free verification checkout at
+`/private/tmp/traceai-verify-20261011-frj688e7/traceai`. Its baseline is exact published source
+`2fddb959fc4439f5dfc45108d3e94f45d773c7b9`, overlaid with current changed/new source files. SHA-256
+comparisons against the original files are recorded in its ignored source manifest; no private
+`.local/gemini.env`, actual `.env` or `.dev.vars` was copied. This is same-source **local** evidence,
+not a new CI or deployed release. The unchanged baseline ignore/strict-type rules remain intact.
+Only disposable local databases/accounts/keys are used; migrations, pricing imports and demo seed
+operate locally, with no real provider calls or production writes.
+
+- [x] Original placeholder bytes restored and inspected; scoped original `git diff --check` passed.
+      Original full Git status can still stall; inspect it again before any commit/push.
+- [x] Frozen Bun install, whole-workspace format/lint/types, **369 unit / 75 Worker-D1** tests in
+      the non-cloud copy after the implementation fixes. Intermediate clean-typecheck failure is
+      recorded above rather than treated as a pass.
+- [x] Public SDK/adapter builds and isolated strict types, MIT license and actual Bun1.4 / Node22
+      and Node24 packed consumers passed. These local tarballs were not published.
+- [x] All workspace builds, API dry-run bundle, OpenNext build and compiled environment guard passed.
+- [x] Full current native and built-workerd browser suites: **24/24 + 24/24**, including new
+      regressions and AA. Build success alone is not substituted for runtime verification.
+- [x] Reproduce/fix the unapplied custom-editor/history case at the actual browser seam.
+- [x] Independent current-source review and changed-file/manifest scope reconciliation. No new
+      runtime/security blocker found; common provider-token/private-key scans found no matches in
+      changed source. No credential files, package versions, public exports, lockfile or CI workflow
+      were changed. This is bounded review evidence, not a universal secret/privacy guarantee.
+
+The original full Git status still timed out, including a bounded tracked-only probe. Scoped original
+diff checks and readable changed-source hashes passed, and full status/diff checks passed in the
+same-source verification copy. Preserve the original checkout and inspect full status before any
+commit/push; do not infer that its cloud residency problem is fixed. The current local slice remains
+uncommitted and undeployed: published-source CI, manual deployment and live after-measurement are
+separate future steps, not checked gates for this local improvement.
+
+No older CI result or health check proves these locally verified changes. Production health was separately
+observed HTTP200 during the follow-up; the live product was not replaced by this unverified slice.
+
+## Trace-start window clarity — local validation (2026-10-11 Taipei)
+
+The continued slice now makes the applied investigation window visible. Boundaries use exact UTC
+milliseconds and actual `<time datetime>` values: trace `startedAt` is **from-inclusive / to-exclusive**,
+not filtered by ingestion time. A fixed query window is not a frozen set of rows: later-ingested or
+backfilled traces within it can appear on refetch. No polling, timer or extra query was added.
+
+- Preset Refresh sets the cutoff to now; it may move a future-dated shared window backwards.
+- Custom Refresh reloads the same window. Settings/detail retain the analytics window for navigation,
+  but explicitly say it does not filter that page; their Refresh does not move its cutoff.
+- The date selector and Refresh describe their behavior through the same accessible note. Visible
+  milliseconds preserve the demo's `anchor + 1ms` exclusive boundary, including at 320px.
+- Current/local screenshots and the matched Better Stack time-filter reference are in ignored
+  `.lazyweb/design-improve/snapshot-cutoff-2026-10-11/report.html`; no private dashboard was uploaded.
+
+The new browser case first failed because the named window region was absent. An intermediate
+assertion incorrectly compared a noncanonical incoming URL with the canonical return URL, and a
+new Settings assertion used the wrong heading; those test-fixture mistakes were corrected to match
+the actual navigation contract. A strict noUncheckedIndexedAccess test error was also corrected.
+These attempts are not counted as passes, and no product assertion was bypassed.
+
+Final same-source local checks passed: full format/lint/types, **369 unit / 75 actual Worker-D1**,
+all workspace builds, guarded OpenNext build, isolated Bun1.4/Node24 packed consumers, **25/25 native
+Next** (1.7m) and **25/25 built-workerd** (43.6s, Node22.22.0, normal `CI=1` command). Browser checks
+include automated AA in both themes, 320/390/768/1440 layouts, genuine local SDK storage, ownership,
+keys and explicit mock scenarios. The new/extended window journeys also passed **6/6** independently.
+The 35-file source manifest matches the original checkout; published SDK core/version/exports,
+lockfile, CI workflow and deployment configuration are unchanged.
+
+One bounded read-only Git probe established that original tracked refresh was blocked reading
+`.gitignore`: its own open handle and stack were in `refresh_index -> read_in_full -> read` while
+index loading took 0.000340s. A single coordinated download then restored its 235 bytes and matching
+hash. A subsequent tracked-only status still timed out at 12s; complete original Git recovery and
+the remaining blocking file are not established. No placeholder/index overwrite, flag change or
+system-service restart occurred. The credential-free non-cloud checkout has complete status/diff
+checks and is the explicitly reviewed release candidate; original files and Git metadata are preserved.
+
+The owner explicitly authorized push, a new CI run, and deployment only after it succeeds. At this
+local checkpoint, those remote gates remain pending; npm `0.1.0` is not republished. Deployment/CI
+results must be recorded separately rather than inferred from these local passes.

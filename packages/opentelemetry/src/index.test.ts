@@ -392,4 +392,46 @@ describe('export acknowledgment and lifecycle', () => {
     expect(events(fetch)).toHaveLength(1);
     expect(trace.setSpan(ROOT_CONTEXT, span)).toBeDefined();
   });
+  it('lets the runnable demo finish a retry beyond the default OTel deadlines', async () => {
+    vi.useFakeTimers();
+    vi.stubEnv('TRACEAI_API_KEY', 'test-only');
+    vi.stubEnv('TRACEAI_ENDPOINT', 'http://localhost:8787');
+    vi.doMock('@traceai/opentelemetry', () => ({ TraceAIExporter }));
+    const output = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(async () => {
+      if (fetch.mock.calls.length === 1) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return new Response(null, { status: 429, headers: { 'Retry-After': '30' } });
+      }
+      return new Response(null, { status: 202 });
+    });
+    vi.stubGlobal('fetch', fetch);
+    try {
+      const demo = import('../../../examples/opentelemetry-demo/src/index').then(
+        () => ({ status: 'completed' as const }),
+        (error: unknown) => ({
+          status: 'failed' as const,
+          reason: String(error),
+        }),
+      );
+      await vi.waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+      await vi.advanceTimersByTimeAsync(35_000);
+      expect(await demo).toEqual({ status: 'completed' });
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(
+        (JSON.parse(String(fetch.mock.calls[1]?.[1]?.body)) as { events: unknown[] }).events,
+      ).toHaveLength(2);
+      expect(output).toHaveBeenCalledOnce();
+      expect(JSON.parse(String(output.mock.calls[0]?.[0]))).toMatchObject({
+        mode: 'api',
+        events: 2,
+        acknowledgment: 'HTTP batch accepted; API persistence must be verified separately',
+      });
+    } finally {
+      vi.doUnmock('@traceai/opentelemetry');
+      vi.unstubAllGlobals();
+      vi.unstubAllEnvs();
+      vi.useRealTimers();
+    }
+  });
 });

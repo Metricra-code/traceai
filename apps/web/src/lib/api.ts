@@ -15,6 +15,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
       headers: { 'Content-Type': 'application/json', ...options?.headers },
     });
   } catch {
+    options?.signal?.throwIfAborted();
     throw new ApiError(0, 'Cannot reach TraceAI. Check your connection and try again.');
   }
   if (!response.ok) {

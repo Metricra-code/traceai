@@ -106,7 +106,7 @@ try {
           '@opentelemetry/api': '1.9.1',
           '@opentelemetry/sdk-trace-base': '2.12.0',
         },
-        // Until registry publication is explicitly authorized, resolve the adapter's public SDK dependency from its tarball.
+        // Verify the current workspace SDK artifact with the adapter, independently of registry releases.
         overrides: { '@akai_80percent/traceai-sdk': `file:${join(artifacts, 'sdk.tgz')}` },
         devDependencies: {
           typescript: await installedVersion('typescript'),

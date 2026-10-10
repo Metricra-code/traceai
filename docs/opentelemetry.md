@@ -33,9 +33,11 @@ simulated failure has unknown usage. Pricing remains unknown unless the real reg
 provider/model. HTTP acknowledgment alone is not a persistence assertion: inspect those IDs through
 your authenticated project API/Dashboard to prove Worker → D1 ingestion.
 
-Neither public package is published to npm. Use workspace builds or paired Bun tarballs;
-`bun run test:packages` installs an external temporary consumer with the SDK tarball override,
-checks strict public declaration types/MIT files, then exercises both packages on Bun and Node 22.
+The core `@akai_80percent/traceai-sdk@0.1.0` is published to npm; the optional
+`@traceai/opentelemetry` adapter is not. Use workspace builds or paired Bun tarballs for the adapter.
+`bun run test:packages` overrides the SDK with its local tarball to verify the current workspace
+artifacts together, checks strict public declaration types/MIT files, then exercises both packages
+on Bun and Node 22. It does not publish either package. See [SDK publication evidence](npm.md).
 
 ## Provider setup
 
@@ -51,6 +53,7 @@ const exporter = new TraceAIExporter({
   errorSummary: () => 'AI operation failed after application deadline.',
 });
 const provider = new BasicTracerProvider({
+  forceFlushTimeoutMillis: 90_000,
   spanProcessors: [
     new BatchSpanProcessor(exporter, {
       maxExportBatchSize: 50,
@@ -63,11 +66,14 @@ const provider = new BasicTracerProvider({
 const tracer = provider.getTracer('my-ai-service');
 ```
 
-Configure processor export deadlines above your SDK retry/timeout budget. OTel processor limits
+Configure both provider `forceFlushTimeoutMillis` and processor `exportTimeoutMillis` above your
+SDK retry/timeout budget; each defaults to 30s. Increasing only the processor deadline still lets
+`provider.forceFlush()` time out after 30s while delivery continues. OTel processor limits
 are **separate** from TraceAI limits; processor timeouts/drop policies can lose spans before/while
 exporting. One default HTTP batch can take up to approximately 75s with three 5s requests and two
 30s capped Retry-After waits; queued or byte-split batches can take longer. The 90s example is not
-a universal drain deadline. Apply deadlines to the application AI operation itself. End spans in a `finally` block;
+a universal drain deadline. The runnable two-event demo uses both 90s deadlines for its single tiny
+HTTP batch. Apply deadlines to the application AI operation itself. End spans in a `finally` block;
 at controlled process termination, `await provider.forceFlush()` then `await provider.shutdown()`.
 Do not await exporter lifecycle methods from a metadata/error mapper or result callback.
 

@@ -476,7 +476,6 @@ test('explicitly mocked loading, API failure/retry and empty states are actionab
   let fail = true;
   await page.route('**/api/demo/overview?*', async (route) => {
     if (fail) {
-      fail = false;
       await route.fulfill({
         status: 503,
         json: { error: { message: 'Test-injected API unavailable' } },
@@ -487,6 +486,8 @@ test('explicitly mocked loading, API failure/retry and empty states are actionab
   await expect(page.locator('.main-content').getByRole('alert')).toContainText(
     'Test-injected API unavailable',
   );
+  await expect(page.locator('.main-content').getByRole('alert')).toBeVisible();
+  fail = false;
   await page.getByRole('button', { name: 'Try again', exact: true }).click();
   await expect(page.getByTestId('total-requests')).toBeVisible();
   await page.unroute('**/api/demo/overview?*');

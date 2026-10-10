@@ -3,7 +3,8 @@
 Optional, server-side OpenTelemetry `SpanExporter` for GenAI operations. The core
 `@akai_80percent/traceai-sdk` does not depend on OpenTelemetry. Bun 1.4+ / Node.js 22+; tested with
 OpenTelemetry API 1.9.1 and tracing SDK 2.12.0.
-**Not published to npm:** use workspace builds or the paired Bun-packed SDK/adapter tarballs.
+**This adapter is not published to npm:** use workspace builds or the paired Bun-packed SDK/adapter
+tarballs. The core `@akai_80percent/traceai-sdk@0.1.0` is published independently.
 The repository's `bun run test:packages` exercises independent consumers without publishing.
 
 ```ts
@@ -15,6 +16,7 @@ const exporter = new TraceAIExporter({
   endpoint: process.env.TRACEAI_ENDPOINT!,
 });
 const provider = new BasicTracerProvider({
+  forceFlushTimeoutMillis: 90_000,
   spanProcessors: [new BatchSpanProcessor(exporter, { exportTimeoutMillis: 90_000 })],
 });
 const tracer = provider.getTracer('my-ai-service');
@@ -34,10 +36,11 @@ await provider.forceFlush();
 await provider.shutdown();
 ```
 
-Align the processor deadline with the SDK's retry budget. One default HTTP batch can take
-approximately 75s (three 5s requests plus two capped 30s Retry-After waits); the processor's
-default 30s timeout can fail while delivery continues. Queued or byte-split batches can take
-longer, so 90s is not a universal drain deadline. Apply application-operation deadlines separately.
+Align both the provider force-flush and processor export deadlines with the SDK's retry budget.
+One default HTTP batch can take approximately 75s (three 5s requests plus two capped 30s Retry-After
+waits); both OTel deadlines default to 30s and can fail while delivery continues. Queued or byte-split
+batches can take longer, so 90s is not a universal drain deadline. Apply application-operation
+deadlines separately.
 
 Required mapping: operation/provider/model attributes, valid OTel IDs, ended span
 and original high-resolution timestamps. Actual response model takes precedence.

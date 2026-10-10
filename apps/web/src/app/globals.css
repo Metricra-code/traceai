@@ -325,7 +325,32 @@ p {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
+}
+.trace-window {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 11px;
+}
+.trace-window-boundaries {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 24px;
+}
+.trace-window-boundary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+.trace-window time {
+  white-space: nowrap;
+  font-size: 10px;
+}
+.trace-window > p {
+  max-width: 80ch;
 }
 .simulated-tag {
   font-size: 10px;

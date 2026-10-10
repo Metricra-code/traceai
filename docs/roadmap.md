@@ -40,7 +40,8 @@ A checked implementation item below means source exists with corresponding tests
 - [x] Privacy-safe mapping, byte/queue/admission bounds, honest export callbacks, forceFlush/shutdown,
       real OTel SDK tests and a no-credential in-memory provider example.
 - [x] Bun-packed public SDK/adapter artifacts, MIT license files, isolated strict public-type checks and
-      actual Bun/Node runtime consumers. No private workspace runtime dependency; **not published to npm**.
+      actual Bun/Node runtime consumers. No private workspace runtime dependency. Core SDK
+      `@akai_80percent/traceai-sdk@0.1.0` is published; the optional adapter remains **unpublished**.
 - [x] Repeatable concurrent SDK benchmark with equal warm-up, hardware/runtime/sample/loss reporting;
       public API/browser/modest-traffic measurement scripts document what they do and do not measure.
 
@@ -77,3 +78,13 @@ are separate evidence; do not collapse them into a completion claim.
   scope. They are not missing original requirements and must not silently enlarge this portfolio.
 
 For a short, evidence-led presentation, use [interview-guide.md](interview-guide.md).
+
+## Continuous-improvement follow-up (2026-10-10)
+
+The verified release above remains a dated baseline. A new local slice improves investigation
+continuity, query cancellation/refresh efficiency, cursor compatibility, linear provider aggregation
+and runnable OTel deadlines. Focused checks and the remaining current-source gates are recorded
+under [continued strengthening](verification.md#continued-strengthening--local-work-2026-10-10).
+These uncommitted changes are not yet a new published/deployed release. Current checks use a
+credential-free, same-source non-cloud verification copy because local cloud placeholders can
+be evicted again; the dated outcomes and remaining gates are recorded in verification.

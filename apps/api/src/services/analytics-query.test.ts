@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { MAX_TRACE_CURSOR_CHARS } from '@traceai/shared';
 import { encodeTraceCursor, parseAggregateQuery, parseTraceQuery } from './analytics-query';
 
 const defaults = { projectId: 'project-one', defaultTo: '2026-10-09T00:00:00.000Z' };
@@ -81,6 +82,33 @@ describe('analytics query boundary', () => {
 });
 
 describe('cursor encoding and exact window bounds', () => {
+  it('roundtrips the exact maximum canonical v1 payload including JSON escape amplification', () => {
+    const project = { ...defaults, projectId: '\u0001'.repeat(128) };
+    const parameters = new URLSearchParams(dates);
+    parameters.set('provider', '\u0001'.repeat(120));
+    parameters.set('model', '\u0001'.repeat(120));
+    parameters.set('status', 'success');
+    parameters.set('traceId', 't'.repeat(128));
+    const query = parseTraceQuery(parameters, project);
+    const position = { startedAt: '2026-10-08T12:00:00.000Z', traceId: 't'.repeat(128) };
+    const cursor = encodeTraceCursor(query, project.projectId, position);
+    expect(cursor).toHaveLength(MAX_TRACE_CURSOR_CHARS);
+    parameters.set('cursor', cursor);
+    expect(parseTraceQuery(parameters, project)).toEqual({ ...query, position });
+  });
+  it('rejects one character above the cursor budget before base64 decoding', () => {
+    const decoder = vi.spyOn(globalThis, 'atob');
+    try {
+      const parameters = new URLSearchParams(dates);
+      parameters.set('cursor', 'A'.repeat(MAX_TRACE_CURSOR_CHARS + 1));
+      expect(() => parseTraceQuery(parameters, defaults)).toThrow(
+        expect.objectContaining({ status: 400, code: 'invalid_query' }),
+      );
+      expect(decoder).not.toHaveBeenCalled();
+    } finally {
+      decoder.mockRestore();
+    }
+  });
   it('roundtrips non-ASCII provider names in a URL-safe cursor', () => {
     const parameters = new URLSearchParams(dates);
     parameters.set('provider', '範例供應商');

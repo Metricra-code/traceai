@@ -113,6 +113,11 @@ Missing seed data returns 404 `demo_not_available`, not fabricated metrics.
 
 ### Query contract
 
+The dashboard displays the exact UTC trace-start window, from inclusive to exclusive. Navigation
+retains that query window, not an immutable set of rows: backfilled traces within it may appear on
+refetch. Preset Refresh sets its cutoff to now; custom Refresh keeps its boundaries. Settings and
+trace detail retain the window for returning to analytics, but are not date-filtered.
+
 | Parameter           | Rule                                                                               |
 | ------------------- | ---------------------------------------------------------------------------------- |
 | `from`, `to`        | Both UTC ISO strings ending in `Z`, or both omitted; canonicalized to milliseconds |
@@ -127,6 +132,10 @@ Missing seed data returns 404 `demo_not_available`, not fabricated metrics.
 Duplicate/unknown parameters, malformed cursors and invalid ranges return safe 400 errors. Detail and
 demo metadata endpoints accept no query parameters. Omitted dates mean 24 hours ending at now for private
 projects, or actual demo anchor +1ms. A cursor retains the original default range, avoiding page drift.
+
+The trace-list cursor is bounded to **3,608 URL-safe characters** before decoding. This limit is
+derived from the complete canonical v1 payload, including worst-case JSON escaping of valid
+provider/model labels, rather than a smaller limit that could reject the API's own next cursor.
 
 All SQL reads are project scoped/indexed. Aggregation selects at most 20,001 narrow candidates;
 **more than 20,000 matches returns 422 `analytics_window_too_large`** and asks for a narrower window/filter.

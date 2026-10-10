@@ -1,4 +1,4 @@
-import { MAX_WINDOW_MS, type QueryFilters } from '@traceai/shared';
+import { MAX_TRACE_CURSOR_CHARS, MAX_WINDOW_MS, type QueryFilters } from '@traceai/shared';
 import { z } from 'zod';
 import { RequestError } from './http-errors';
 
@@ -29,7 +29,7 @@ const listSchema = aggregateSchema
     cursor: z
       .string()
       .min(1)
-      .max(2048)
+      .max(MAX_TRACE_CURSOR_CHARS)
       .regex(/^[a-zA-Z0-9_-]+$/)
       .optional(),
   })

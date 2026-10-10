@@ -247,6 +247,45 @@ describe('real Worker project-scoped analytics on migrated D1', () => {
     ).toBe(400);
     expect((await read(`/v1/demo/traces?${dates}&cursor=${page.nextCursor}`)).status).toBe(400);
   });
+  it.each(['newest', 'oldest'])(
+    'continues a real %s page with maximum JSON-escaped provider/model filters',
+    async (sort) => {
+      const cookie = await fixture();
+      const label = '\u0001'.repeat(120);
+      await env.DB.prepare(
+        "UPDATE traces SET provider = ?, model = ?, trace_id = printf('%0128d', duration_ms), started_at = ?, ended_at = ? WHERE project_id = ?",
+      )
+        .bind(label, label, timestamp(1), timestamp(2), 'project-one')
+        .run();
+      const parameters = new URLSearchParams({
+        from,
+        to,
+        provider: label,
+        model: label,
+        status: 'success',
+        limit: '1',
+        sort,
+      });
+      const path = '/v1/projects/project-one/traces';
+      const firstResponse = await read(`${path}?${parameters}`, cookie);
+      expect(firstResponse.status).toBe(200);
+      const first = (await firstResponse.json()) as TracePage;
+      expect(first.items).toHaveLength(1);
+      expect(first.nextCursor!.length).toBeGreaterThan(2048);
+      parameters.set('cursor', first.nextCursor!);
+      const secondResponse = await read(`${path}?${parameters}`, cookie);
+      expect(secondResponse.status).toBe(200);
+      const second = (await secondResponse.json()) as TracePage;
+      expect(second.items).toHaveLength(1);
+      expect(second.items[0]!.traceId).not.toBe(first.items[0]!.traceId);
+      expect(second.items[0]).toMatchObject({
+        projectId: 'project-one',
+        provider: label,
+        model: label,
+        status: 'success',
+      });
+    },
+  );
   it('returns safe trace details with string cost and never raw legacy errors', async () => {
     const cookie = await fixture();
     const response = await read('/v1/projects/project-one/traces/trace-19', cookie);

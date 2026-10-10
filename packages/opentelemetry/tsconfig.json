@@ -3,6 +3,9 @@
   "include": ["src/**/*.ts"],
   "compilerOptions": {
     "types": ["node"],
-    "paths": { "@akai_80percent/traceai-sdk": ["../sdk/src/index.ts"] }
+    "paths": {
+      "@traceai/opentelemetry": ["./src/index.ts"],
+      "@akai_80percent/traceai-sdk": ["../sdk/src/index.ts"]
+    }
   }
 }

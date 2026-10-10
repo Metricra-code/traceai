@@ -220,8 +220,9 @@ shutdown races, retry jitter, Retry-After, permanent errors, ignored AbortSignal
 redaction, delivery receipts, and 10,000 simultaneously active callbacks with a bounded 50-event queue.
 `test:packages` packs with Bun into ignored `.local/packages/`, installs an external temporary consumer,
 checks strict public types and MIT files, then runs actual SDK + real OTel provider imports on Bun and
-Node 22. The adapter's public SDK dependency is overridden to the local SDK tarball because no registry
-release exists. No private workspace runtime dependency is installed; no package is published.
+Node 22. The adapter's public SDK dependency is overridden to the local SDK tarball to verify the
+current workspace artifacts together, independently of the published SDK 0.1.0. No private workspace
+runtime dependency is installed; this check publishes nothing.
 
 ## Repeatable overhead benchmark
 

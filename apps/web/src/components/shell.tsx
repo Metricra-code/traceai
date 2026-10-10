@@ -1,15 +1,8 @@
 'use client';
-import {
-  createContext,
-  useContext,
-  useState,
-  useMemo,
-  type ReactNode,
-  type FormEvent,
-} from 'react';
+import { createContext, useContext, useState, type ReactNode, type FormEvent } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Activity,
   LayoutDashboard,
@@ -27,7 +20,18 @@ import {
 } from 'lucide-react';
 import type { Project } from '@traceai/shared';
 import { api } from '@/lib/api';
+import {
+  analyticsHref,
+  navigationParams,
+  paginationState,
+  readNavigation,
+  recordNextPage,
+  type CursorHistory,
+  type NavigationState,
+  type TraceFilters,
+} from '@/lib/navigation';
 import { Failure, Loading } from './ui';
+import { TraceWindow } from './trace-window';
 import { useTheme } from './providers';
 import {
   DropdownMenu,
@@ -45,6 +49,13 @@ interface WindowContext {
   query: string;
   from: string;
   to: string;
+  navigation: NavigationState;
+  href: (path: string) => string;
+  updateFilters: (filters: Partial<TraceFilters>) => void;
+  pagination: { page?: number; previous?: string };
+  nextPage: (cursor: string) => void;
+  previousPage: () => void;
+  firstPage: () => void;
 }
 const AnalyticsContext = createContext<WindowContext | undefined>(undefined);
 export function useAnalytics() {
@@ -56,10 +67,12 @@ export function Shell({
   children,
   basePath,
   project,
+  search = '',
 }: {
   children: ReactNode;
   basePath?: string;
   project?: Project;
+  search?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -69,12 +82,13 @@ export function Shell({
   const [logoutError, setLogoutError] = useState('');
   const session = useQuery({
     queryKey: ['session'],
-    queryFn: () => api<{ user: { id: string; email: string } }>('auth/session'),
+    queryFn: ({ signal }) =>
+      api<{ user: { id: string; email: string } }>('auth/session', { signal }),
     enabled: !demo,
   });
   const projects = useQuery({
     queryKey: ['projects'],
-    queryFn: () => api<{ items: Project[] }>('projects'),
+    queryFn: ({ signal }) => api<{ items: Project[] }>('projects', { signal }),
     enabled: !!project && !demo,
   });
   const nav = [
@@ -118,7 +132,11 @@ export function Shell({
               item.href && (
                 <Link
                   key={item.name}
-                  href={item.href}
+                  href={
+                    basePath && item.href.startsWith(basePath) && search
+                      ? `${item.href}?${search}`
+                      : item.href
+                  }
                   aria-current={pathname === item.href ? 'page' : undefined}
                 >
                   <item.icon size={17} />
@@ -267,18 +285,28 @@ export function DashboardFrame({
   const cache = useQueryClient();
   const metadata = useQuery<{ project: Project; anchor: string } | { items: Project[] }>({
     queryKey: demo ? ['demo'] : ['projects'],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       demo
-        ? api<{ project: Project; anchor: string }>('demo')
-        : api<{ items: Project[] }>('projects'),
+        ? api<{ project: Project; anchor: string }>('demo', { signal })
+        : api<{ items: Project[] }>('projects', { signal }),
   });
-  const [days, setDays] = useState(demo ? '7' : '1');
   const pathname = usePathname();
-  const [refreshVersion, setRefreshVersion] = useState(0);
-  // Freeze a query window while viewing it; navigation or explicit refresh takes a new snapshot.
-  const now = useMemo(() => new Date().toISOString(), [pathname, refreshVersion]);
-  const [custom, setCustom] = useState<{ from: string; to: string }>();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Navigation retains the query window; a refetch may include backfilled traces within it.
+  const [now] = useState(() => new Date().toISOString());
+  const [customEditing, setCustomEditing] = useState(false);
+  const [history, setHistory] = useState<CursorHistory>([]);
   const [rangeError, setRangeError] = useState('');
+  const viewKey = `${pathname}?${searchParams.toString()}`;
+  const [editorViewKey, setEditorViewKey] = useState(viewKey);
+  // Discard unapplied editor state when navigation restores another snapshot.
+  if (editorViewKey !== viewKey) {
+    setEditorViewKey(viewKey);
+    setCustomEditing(false);
+    setRangeError('');
+  }
+  const refreshing = useIsFetching({ queryKey: [demo ? 'demo' : `projects/${projectId}`] }) > 0;
   if (metadata.isPending)
     return (
       <Shell basePath={demo ? '/demo' : undefined}>
@@ -287,7 +315,7 @@ export function DashboardFrame({
     );
   if (metadata.error)
     return (
-      <Shell>
+      <Shell basePath={demo ? '/demo' : undefined}>
         <Failure error={metadata.error} retry={() => void metadata.refetch()} />
       </Shell>
     );
@@ -304,10 +332,68 @@ export function DashboardFrame({
       </Shell>
     );
   const end = demo && 'anchor' in data ? new Date(Date.parse(data.anchor) + 1).toISOString() : now;
-  const from = custom?.from ?? new Date(Date.parse(end) - Number(days) * 86_400_000).toISOString();
-  const to = custom?.to ?? end;
   const basePath = demo ? '/demo' : `/dashboard/${project.id}`;
   const apiBase = demo ? 'demo' : `projects/${project.id}`;
+  const fallback = {
+    from: new Date(Date.parse(end) - (demo ? 7 : 1) * 86_400_000).toISOString(),
+    to: end,
+    range: demo ? ('7' as const) : ('1' as const),
+  };
+  const parsed = readNavigation(new URLSearchParams(searchParams.toString()), fallback);
+  if (!parsed.success)
+    return (
+      <Shell basePath={basePath} project={project}>
+        <section className="notice error" role="alert">
+          <div>
+            <h1>Invalid view parameters</h1>
+            <p>
+              Use valid UTC dates, filters and pagination parameters with a window of at most 31
+              days.
+            </p>
+            <button onClick={() => router.replace(pathname)}>Reset view</button>
+          </div>
+        </section>
+      </Shell>
+    );
+  const navigation = parsed.state;
+  const { from, to } = navigation;
+  const windowView = [basePath, `${basePath}/models`, `${basePath}/traces`].includes(pathname);
+  const scopeParams = navigationParams({ ...navigation, cursor: '' });
+  scopeParams.delete('range');
+  const scope = `${apiBase}:${scopeParams}`;
+  const pagination = paginationState(history, scope, navigation.cursor);
+  const href = (path: string) => analyticsHref(path, navigation);
+  function navigate(next: NavigationState, replace = false) {
+    const target = analyticsHref(pathname, next);
+    // Next's native History API integration synchronizes useSearchParams without an RSC request.
+    if (replace) window.history.replaceState(null, '', target);
+    else window.history.pushState(null, '', target);
+  }
+  function updateFilters(filters: Partial<TraceFilters>) {
+    const next = readNavigation(
+      navigationParams({ ...navigation, ...filters, cursor: '' }),
+      fallback,
+    );
+    if (next.success) navigate(next.state);
+  }
+  function refresh() {
+    if (navigation.range === 'custom' || !windowView) {
+      void cache.invalidateQueries({ queryKey: [apiBase] });
+      return;
+    }
+    // Mark old snapshots stale without refetching a range we are about to replace.
+    void cache.invalidateQueries({ queryKey: [apiBase], refetchType: 'none' });
+    const finish = new Date().toISOString();
+    navigate(
+      {
+        ...navigation,
+        from: new Date(Date.parse(finish) - Number(navigation.range) * 86_400_000).toISOString(),
+        to: finish,
+        cursor: '',
+      },
+      true,
+    );
+  }
   function applyRange(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const fields = new FormData(event.currentTarget);
@@ -318,11 +404,18 @@ export function DashboardFrame({
       setRangeError('Choose an increasing UTC range of at most 31 days.');
       return;
     }
-    setCustom({ from: start.toISOString(), to: finish.toISOString() });
+    navigate({
+      ...navigation,
+      from: start.toISOString(),
+      to: finish.toISOString(),
+      range: 'custom',
+      cursor: '',
+    });
+    setCustomEditing(false);
     setRangeError('');
   }
   return (
-    <Shell basePath={basePath} project={project}>
+    <Shell basePath={basePath} project={project} search={navigationParams(navigation).toString()}>
       <AnalyticsContext.Provider
         value={{
           project,
@@ -332,6 +425,19 @@ export function DashboardFrame({
           query: new URLSearchParams({ from, to }).toString(),
           from,
           to,
+          navigation,
+          href,
+          updateFilters,
+          pagination,
+          nextPage: (cursor) => {
+            setHistory((previous) => recordNextPage(previous, scope, navigation.cursor, cursor));
+            navigate({ ...navigation, cursor });
+          },
+          previousPage: () => {
+            if (pagination.previous !== undefined)
+              navigate({ ...navigation, cursor: pagination.previous });
+          },
+          firstPage: () => navigate({ ...navigation, cursor: '' }),
         }}
       >
         <div className="view-toolbar">
@@ -342,24 +448,27 @@ export function DashboardFrame({
           )}
           <div className="range-control">
             {!demo && (
-              <button
-                onClick={() => {
-                  setRefreshVersion((previous) => previous + 1);
-                  void cache.invalidateQueries({ queryKey: [apiBase] });
-                }}
-              >
+              <button disabled={refreshing} onClick={refresh} aria-describedby="trace-window-note">
                 Refresh data
               </button>
             )}
             <span className="muted small">UTC</span>
             <select
               aria-label="Date range"
-              value={custom ? 'custom' : days}
+              aria-describedby="trace-window-note"
+              value={customEditing ? 'custom' : navigation.range}
               onChange={(e) => {
-                if (e.target.value === 'custom') setCustom({ from, to });
+                setRangeError('');
+                if (e.target.value === 'custom') setCustomEditing(true);
                 else {
-                  setCustom(undefined);
-                  setDays(e.target.value);
+                  setCustomEditing(false);
+                  const range = e.target.value as '1' | '7' | '30';
+                  navigate({
+                    ...navigation,
+                    from: new Date(Date.parse(to) - Number(range) * 86_400_000).toISOString(),
+                    range,
+                    cursor: '',
+                  });
                 }
               }}
             >
@@ -370,8 +479,21 @@ export function DashboardFrame({
             </select>
           </div>
         </div>
-        {custom && (
-          <form className="custom-range" onSubmit={applyRange}>
+        <TraceWindow
+          from={from}
+          to={to}
+          mode={
+            !windowView
+              ? 'retained'
+              : demo
+                ? 'simulated'
+                : navigation.range === 'custom'
+                  ? 'custom'
+                  : 'preset'
+          }
+        />
+        {(customEditing || navigation.range === 'custom') && (
+          <form className="custom-range" onSubmit={applyRange} key={`${viewKey}:${from}:${to}`}>
             <label>
               From (UTC)
               <input name="from" type="datetime-local" defaultValue={from.slice(0, 16)} required />

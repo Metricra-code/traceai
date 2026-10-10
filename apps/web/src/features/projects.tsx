@@ -13,7 +13,7 @@ export function ProjectsView() {
   const router = useRouter();
   const result = useQuery({
     queryKey: ['projects'],
-    queryFn: () => api<{ items: Project[] }>('projects'),
+    queryFn: ({ signal }) => api<{ items: Project[] }>('projects', { signal }),
   });
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
@@ -126,7 +126,7 @@ export function SettingsView() {
   const router = useRouter();
   const keys = useQuery({
     queryKey: [apiBase, 'keys'],
-    queryFn: () => api<{ items: ApiKey[] }>(`${apiBase}/api-keys`),
+    queryFn: ({ signal }) => api<{ items: ApiKey[] }>(`${apiBase}/api-keys`, { signal }),
   });
   const [rawKey, setRawKey] = useState('');
   const [error, setError] = useState('');

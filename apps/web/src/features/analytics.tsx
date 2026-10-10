@@ -17,6 +17,7 @@ import type { MetricBucket, ModelComparison, Overview } from '@traceai/shared';
 import { useAnalytics } from '@/components/shell';
 import { Empty, Failure, Loading, Title } from '@/components/ui';
 import { api, cost, integer, latency } from '@/lib/api';
+import { providerVolumes } from '@/lib/analytics';
 const COLORS = [1, 2, 3, 4, 5].map((number) => `var(--chart-${number})`);
 function Chart({
   title,
@@ -99,18 +100,20 @@ function Chart({
   );
 }
 export function OverviewView() {
-  const { apiBase, query, demo, basePath } = useAnalytics();
+  const { apiBase, query, demo, basePath, href } = useAnalytics();
   const overview = useQuery({
     queryKey: [apiBase, 'overview', query],
-    queryFn: () => api<Overview>(`${apiBase}/overview?${query}`),
+    queryFn: ({ signal }) => api<Overview>(`${apiBase}/overview?${query}`, { signal }),
   });
   const metrics = useQuery({
     queryKey: [apiBase, 'metrics', query],
-    queryFn: () => api<{ items: MetricBucket[]; bucket: string }>(`${apiBase}/metrics?${query}`),
+    queryFn: ({ signal }) =>
+      api<{ items: MetricBucket[]; bucket: string }>(`${apiBase}/metrics?${query}`, { signal }),
   });
   const models = useQuery({
     queryKey: [apiBase, 'models', query],
-    queryFn: () => api<{ items: ModelComparison[] }>(`${apiBase}/models?${query}`),
+    queryFn: ({ signal }) =>
+      api<{ items: ModelComparison[] }>(`${apiBase}/models?${query}`, { signal }),
   });
   if (overview.error || metrics.error || models.error)
     return (
@@ -125,14 +128,7 @@ export function OverviewView() {
     );
   if (!overview.data || !metrics.data || !models.data) return <Loading />;
   const data = overview.data;
-  const providers = Array.from(new Set(models.data.items.map((item) => item.provider))).map(
-    (provider) => ({
-      provider,
-      requests: models.data.items
-        .filter((item) => item.provider === provider)
-        .reduce((sum, item) => sum + item.totalRequests, 0),
-    }),
-  );
+  const providers = providerVolumes(models.data.items);
   return (
     <>
       <Title
@@ -286,7 +282,7 @@ export function OverviewView() {
             <section className="chart-panel">
               <div className="section-heading">
                 <h2>Model usage</h2>
-                <Link href={`${basePath}/models`}>
+                <Link href={href(`${basePath}/models`)}>
                   Compare models <ArrowUpRight size={13} />
                 </Link>
               </div>
@@ -325,7 +321,8 @@ export function ModelsView() {
   const { apiBase, query, demo } = useAnalytics();
   const result = useQuery({
     queryKey: [apiBase, 'models', query],
-    queryFn: () => api<{ items: ModelComparison[] }>(`${apiBase}/models?${query}`),
+    queryFn: ({ signal }) =>
+      api<{ items: ModelComparison[] }>(`${apiBase}/models?${query}`, { signal }),
   });
   if (result.error) return <Failure error={result.error} retry={() => void result.refetch()} />;
   if (!result.data) return <Loading />;

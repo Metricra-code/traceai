@@ -11,6 +11,10 @@ export const MAX_BATCH_SIZE = 50;
 export const MAX_PAYLOAD_BYTES = 256 * 1024;
 export const MAX_METADATA_BYTES = 8 * 1024;
 export const MAX_WINDOW_MS = 31 * 24 * 60 * 60 * 1000;
+// Canonical v1 JSON: 157 structural bytes + 6*(128+2*120) escaped project/provider/model
+// + 3*24 UTC timestamps + 2*128 ASCII trace IDs + 7 status + 6 sort = 2,706 bytes.
+// Unpadded base64url needs ceil(4*bytes/3) characters; this also bounds decoding work.
+export const MAX_TRACE_CURSOR_CHARS = Math.ceil((2_706 * 4) / 3);
 const label = z.string().trim().min(1).max(120);
 const timestamp = z.iso.datetime();
 const utcTimestampParts = (value: string) => {

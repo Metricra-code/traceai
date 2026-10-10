@@ -28,6 +28,8 @@ test('account, project, SDK telemetry, filters, key rotation and revocation work
   await page.getByRole('button', { name: 'Generate API key' }).click();
   const key = await page.getByTestId('raw-api-key').textContent();
   expect(key).toMatch(/^tai_[a-f0-9]{32}_[a-f0-9]{64}$/);
+  const overviewLink = page.getByRole('link', { name: 'Overview', exact: true });
+  const snapshotUrl = new URL((await overviewLink.getAttribute('href'))!, page.url());
   const sdk = new TraceAI({
     apiKey: key!,
     endpoint,
@@ -46,8 +48,20 @@ test('account, project, SDK telemetry, filters, key rotation and revocation work
   await sdk.shutdown();
   await page.getByRole('button', { name: 'I saved it · Hide key' }).click();
   await expect(page.getByTestId('raw-api-key')).toHaveCount(0);
-  await page.getByRole('link', { name: 'Overview', exact: true }).click();
+  await overviewLink.click();
+  await expect(page).toHaveURL(snapshotUrl.href);
+  // Navigation retains the pre-ingestion snapshot; only an explicit refresh advances it.
+  await expect(page.getByTestId('total-requests')).toHaveText('0');
+  await page.getByRole('button', { name: 'Refresh data', exact: true }).click();
   await expect(page.getByTestId('total-requests')).toHaveText('2');
+  const refreshedPreset = new URL(page.url()).searchParams;
+  expect(refreshedPreset.get('range')).toBe('1');
+  expect(Date.parse(refreshedPreset.get('to')!)).toBeGreaterThan(
+    Date.parse(snapshotUrl.searchParams.get('to')!),
+  );
+  expect(Date.parse(refreshedPreset.get('to')!) - Date.parse(refreshedPreset.get('from')!)).toBe(
+    86_400_000,
+  );
   const rangeFrom = new Date(Date.now() - 86_400_000).toISOString().slice(0, 16);
   const rangeTo = new Date(Date.now() + 120_000).toISOString().slice(0, 16);
   await page.getByLabel('Date range').selectOption('custom');

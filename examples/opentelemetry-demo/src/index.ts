@@ -21,11 +21,14 @@ const exporter = new TraceAIExporter({
     : {}),
 });
 const provider = new BasicTracerProvider({
+  forceFlushTimeoutMillis: 90_000,
   spanProcessors: [
     new BatchSpanProcessor(exporter, {
       maxExportBatchSize: 50,
       maxQueueSize: 200,
       scheduledDelayMillis: 60_000,
+      // This two-event demo fits one HTTP batch; allow its bounded default retry budget.
+      exportTimeoutMillis: 90_000,
     }),
   ],
 });

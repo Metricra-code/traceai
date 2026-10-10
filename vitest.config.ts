@@ -13,6 +13,7 @@ export default defineConfig({
     include: [
       'packages/**/*.test.ts',
       'apps/api/src/**/*.test.ts',
+      'apps/web/src/lib/**/*.test.ts',
       'examples/gemini-demo/src/**/*.test.ts',
       'scripts/**/*.test.ts',
     ],
