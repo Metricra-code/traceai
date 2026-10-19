@@ -17,7 +17,7 @@ import {
 } from '../../../packages/database/src/pricing-registry';
 import { createIngestionKey } from '../src/services/api-keys';
 import { newSession, SESSION_COOKIE_NAME } from '../src/services/auth-sessions';
-import { CLEANUP_ROW_LIMIT, pruneExpiredAuthState } from '../src/services/cleanup';
+import { CLEANUP_ROW_LIMIT, pruneExpiredAuthState } from '../src/repositories/cleanup';
 import worker from '../src';
 
 const verifiedAt = builtInPricingRegistry.entries[0]!.verifiedAt;

@@ -2,7 +2,7 @@ import { apiKeys, traces } from '@traceai/database';
 import { ERROR_CAPTURE_POLICY, type TraceEvent } from '@traceai/shared';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import type { PricingVersion, TraceCost } from '../services/pricing';
+import type { PricingVersion, TraceCost } from '../domain/pricing';
 
 export const INGESTION_REQUESTS_PER_MINUTE = 120;
 const TRACE_INSERT_CHUNK_SIZE = 5;
@@ -18,7 +18,7 @@ export interface IngestionPrincipal {
 interface EventPricing extends PricingVersion {
   traceId: string;
 }
-export type PricedEvent = TraceEvent & TraceCost;
+type PricedEvent = TraceEvent & TraceCost;
 
 export async function findIngestionKey(
   database: D1Database,

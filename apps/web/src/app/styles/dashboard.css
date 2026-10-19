@@ -1,0 +1,80 @@
+.view-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.trace-window {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 11px;
+}
+.trace-window-boundaries {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 24px;
+}
+.trace-window-boundary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+.trace-window time {
+  white-space: nowrap;
+  font-size: 10px;
+}
+.trace-window > p {
+  max-width: 80ch;
+}
+.simulated-tag {
+  font-size: 10px;
+  color: var(--simulated);
+  padding: 5px 9px;
+  background: color-mix(in srgb, #dbb478 8%, var(--panel));
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.range-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.range-control select {
+  min-height: 36px;
+  font-size: 11px;
+}
+.custom-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.custom-range input {
+  font-size: 11px;
+}
+@media (max-width: 600px) {
+  .view-toolbar {
+    align-items: start;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  .simulated-tag {
+    font-size: 9px;
+  }
+  .range-control {
+    margin-left: auto;
+  }
+  .range-control .small {
+    display: none;
+  }
+  .custom-range {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}

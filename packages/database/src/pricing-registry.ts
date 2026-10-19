@@ -15,7 +15,7 @@ const sourceUrl = z
     return url.protocol === 'https:' && !url.username && !url.password && !url.search && !url.hash;
   });
 
-export const pricingEntrySchema = z
+const pricingEntrySchema = z
   .object({
     id: identifier,
     provider: z.enum(['openai', 'anthropic']),
@@ -47,7 +47,6 @@ export const pricingEntrySchema = z
     { message: 'Use the provider official source domain' },
   );
 
-export type PricingEntry = z.infer<typeof pricingEntrySchema>;
 export const pricingRegistrySchema = z
   .object({ version: z.literal(1), entries: z.array(pricingEntrySchema).min(1).max(100) })
   .strict()
@@ -59,7 +58,7 @@ export const pricingRegistrySchema = z
         context.addIssue({ code: 'custom', message: 'Pricing windows overlap' });
     }
   });
-export type PricingRegistry = z.infer<typeof pricingRegistrySchema>;
+type PricingRegistry = z.infer<typeof pricingRegistrySchema>;
 
 // Snapshot observed Oct 9 Taipei. These are NOT claimed provider historical effective dates.
 const verifiedAt = '2026-10-08T19:38:52.000Z';
@@ -100,7 +99,7 @@ for (const entry of builtInPricingRegistry.entries) Object.freeze(entry);
 Object.freeze(builtInPricingRegistry.entries);
 Object.freeze(builtInPricingRegistry);
 
-export interface StoredPricingEntry {
+interface StoredPricingEntry {
   id: string;
   provider: string;
   model: string;
@@ -114,7 +113,7 @@ export interface StoredPricingEntry {
   verifiedAt: string | null;
   billingBasis: string | null;
 }
-export const storedPricingEntrySchema = z
+const storedPricingEntrySchema = z
   .object({
     id: identifier,
     provider: identifier,
@@ -140,10 +139,7 @@ export function parsePricingPreflightResult(value: unknown): StoredPricingEntry[
   return rows;
 }
 
-export function priceWindowsOverlap(
-  first: StoredPricingEntry,
-  second: StoredPricingEntry,
-): boolean {
+function priceWindowsOverlap(first: StoredPricingEntry, second: StoredPricingEntry): boolean {
   return (
     !first.simulated &&
     !second.simulated &&

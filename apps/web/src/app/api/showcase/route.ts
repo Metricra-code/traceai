@@ -1,9 +1,9 @@
-import { recordedCalls } from '../../../lib/showcase-data';
 import {
   createShowcaseResponse,
   parseShowcaseQuery,
+  recordedCalls,
   ShowcaseQueryError,
-} from '../../../lib/showcase';
+} from '@/features/showcase';
 
 export const dynamic = 'force-dynamic';
 const headers = {

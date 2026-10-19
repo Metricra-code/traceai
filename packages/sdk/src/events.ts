@@ -8,7 +8,7 @@ import {
 import type { ReportDiagnostic } from './diagnostics';
 import type { TraceMetadata, TraceOptions, TraceSpan, Usage } from './types';
 
-export interface OperationCapture {
+interface OperationCapture {
   span: TraceSpan;
   summarizeError(error: unknown): string | undefined;
   complete(errorType?: TraceEvent['errorType'], errorSummary?: string): TraceEvent | undefined;

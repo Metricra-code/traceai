@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["examples/local-project/create.ts", "scripts/*.ts"],
+      "ignoreDependencies": ["@opennextjs/cloudflare"]
+    },
+    "apps/api": { "ignoreDependencies": ["cloudflare"] },
+    "apps/web": {
+      "entry": ["open-next.config.ts"],
+      "ignoreDependencies": ["class-variance-authority", "postcss"]
+    },
+    "packages/database": { "entry": ["src/seed.ts"] }
+  }
+}

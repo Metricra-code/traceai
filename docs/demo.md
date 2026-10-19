@@ -57,7 +57,7 @@ This demo is a deterministic product walkthrough, not a production traffic datas
 `gemini-3.5-flash-lite` REST operations, wrapped with the public SDK and persisted in D1. The
 owner approved publishing only model, duration, input/output token counts and status. A scoped
 read-only D1 projection verified the original `gemini-real-api` / `simulated: false` records before
-copying exactly those five fields into `apps/web/src/lib/showcase-data.ts`. The private project was
+copying exactly those five fields into `apps/web/src/features/showcase/recorded-calls.ts`. The private project was
 not made public. Public sample numbers are newly derived ordinals, never private trace identifiers.
 
 The snapshot's actual durations are 1,286.598375 ms, 1,137.5750420000002 ms and 671.828917 ms;

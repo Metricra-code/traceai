@@ -1,11 +1,10 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { isProxiedApiPath } from '../../../lib/routes';
 export const dynamic = 'force-dynamic';
-const allowedPath =
-  /^(?:auth\/(?:register|login|logout|session)|projects(?:\/[a-zA-Z0-9_-]+(?:\/(?:overview|metrics|models|traces(?:\/[a-zA-Z0-9_-]+)?|api-keys(?:\/[a-zA-Z0-9_-]+(?:\/rotate)?)?))?)?|demo(?:\/(?:overview|metrics|models|traces(?:\/[a-zA-Z0-9_-]+)?))?)$/;
 async function proxy(request: Request, context: { params: Promise<{ path: string[] }> }) {
   const { path } = await context.params;
   const endpoint = path.join('/');
-  if (!allowedPath.test(endpoint))
+  if (!isProxiedApiPath(endpoint))
     return Response.json({ error: { message: 'Endpoint not found.' } }, { status: 404 });
   if (endpoint.startsWith('demo') && request.method !== 'GET')
     return new Response(null, { status: 405 });

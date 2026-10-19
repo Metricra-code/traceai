@@ -1,5 +1,6 @@
 import { MAX_TRACE_CURSOR_CHARS, MAX_WINDOW_MS, type QueryFilters } from '@traceai/shared';
 import { z } from 'zod';
+import type { CursorPosition, TraceQuery } from '../domain/analytics';
 import { RequestError } from './http-errors';
 
 const utcTimestamp = z.iso.datetime().transform((value) => new Date(value).toISOString());
@@ -54,15 +55,6 @@ const cursorSchema = z
 interface QueryDefaults {
   projectId: string;
   defaultTo: string;
-}
-export interface CursorPosition {
-  startedAt: string;
-  traceId: string;
-}
-export interface TraceQuery extends QueryFilters {
-  limit: number;
-  sort: 'newest' | 'oldest';
-  position?: CursorPosition;
 }
 
 const invalidQuery = () =>

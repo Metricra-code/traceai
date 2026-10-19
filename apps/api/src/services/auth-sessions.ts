@@ -1,6 +1,3 @@
-import type { Context } from 'hono';
-import { getCookie, setCookie } from 'hono/cookie';
-import type { Bindings } from '../index';
 import {
   createSession,
   deleteSession,
@@ -10,7 +7,6 @@ import {
 } from '../repositories/auth';
 import { RequestError } from './http-errors';
 
-export type ApiContext = Context<{ Bindings: Bindings; Variables: { requestId: string } }>;
 export const SESSION_COOKIE_NAME = 'traceai_session';
 export const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -39,49 +35,34 @@ export async function newSession(
   };
 }
 
-export async function requireSessionUser(context: ApiContext): Promise<AuthUser> {
-  const token = getSessionToken(context);
+export async function requireSessionUser(
+  database: D1Database,
+  token: string | undefined,
+): Promise<AuthUser> {
   const user = token
-    ? await findSessionUser(context.env.DB, await hashSessionToken(token), new Date().toISOString())
+    ? await findSessionUser(database, await hashSessionToken(token), new Date().toISOString())
     : undefined;
   if (!user) throw new RequestError(401, 'unauthorized', 'Sign in to access this resource.');
   return user;
 }
 
-export function setSessionCookie(context: ApiContext, token: string): void {
-  setCookie(context, SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: context.env.ENVIRONMENT !== 'development',
-    sameSite: 'Lax',
-    path: '/',
-    maxAge: SESSION_DURATION_MS / 1000,
-  });
-}
-
-export async function startUserSession(context: ApiContext, userId: string): Promise<void> {
-  const previous = getSessionToken(context);
+export async function startUserSession(
+  database: D1Database,
+  userId: string,
+  previousToken: string | undefined,
+): Promise<string> {
   const session = await newSession(userId);
   await createSession(
-    context.env.DB,
+    database,
     session.record,
-    previous ? await hashSessionToken(previous) : undefined,
+    previousToken ? await hashSessionToken(previousToken) : undefined,
   );
-  setSessionCookie(context, session.token);
+  return session.token;
 }
 
-export async function endUserSession(context: ApiContext): Promise<void> {
-  const token = getSessionToken(context);
-  if (token) await deleteSession(context.env.DB, await hashSessionToken(token));
-  setCookie(context, SESSION_COOKIE_NAME, '', {
-    httpOnly: true,
-    secure: context.env.ENVIRONMENT !== 'development',
-    sameSite: 'Lax',
-    path: '/',
-    maxAge: 0,
-  });
-}
-
-function getSessionToken(context: ApiContext): string | undefined {
-  const token = getCookie(context, SESSION_COOKIE_NAME);
-  return token && /^[a-f0-9]{64}$/.test(token) ? token : undefined;
+export async function endUserSession(
+  database: D1Database,
+  token: string | undefined,
+): Promise<void> {
+  if (token) await deleteSession(database, await hashSessionToken(token));
 }

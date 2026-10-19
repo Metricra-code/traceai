@@ -38,7 +38,7 @@ export type TraceFilters = Pick<
   NavigationState,
   'provider' | 'model' | 'status' | 'traceId' | 'sort'
 >;
-export type NavigationWindow = Pick<NavigationState, 'from' | 'to' | 'range'>;
+type NavigationWindow = Pick<NavigationState, 'from' | 'to' | 'range'>;
 
 export function readNavigation(
   parameters: URLSearchParams,

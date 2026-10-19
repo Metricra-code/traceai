@@ -1,4 +1,4 @@
-import { SettingsView } from '@/features/projects';
+import { ProjectSettingsView } from '@/features/projects';
 export default function Page() {
-  return <SettingsView />;
+  return <ProjectSettingsView />;
 }

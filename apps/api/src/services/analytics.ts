@@ -15,7 +15,8 @@ import {
   readTracePage,
   type AnalyticsRow,
 } from '../repositories/analytics';
-import { encodeTraceCursor, type TraceQuery } from './analytics-query';
+import type { TraceQuery } from '../domain/analytics';
+import { encodeTraceCursor } from './analytics-query';
 import { RequestError } from './http-errors';
 
 export function calculateOverview(rows: readonly AnalyticsRow[]): Overview {

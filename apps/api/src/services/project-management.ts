@@ -2,6 +2,7 @@ import { projectSchema, type ApiKey, type Project } from '@traceai/shared';
 import { z } from 'zod';
 import {
   MAX_ACTIVE_PROJECT_KEYS,
+  KEY_HISTORY_LIMIT,
   MAX_OWNER_PROJECTS,
   deleteOwnedProject,
   insertProject,
@@ -13,9 +14,8 @@ import {
   updateOwnedProject,
 } from '../repositories/projects';
 import { createIngestionKey } from './api-keys';
-import { assertMutationOrigin, requireProjectOwner, requireSessionUser } from './authorization';
+import { requireProjectOwner } from './authorization';
 import { readBoundedJson } from './bounded-json';
-import type { ApiContext } from './auth-sessions';
 import { RequestError } from './http-errors';
 
 const editSchema = z
@@ -27,18 +27,20 @@ const editSchema = z
   .refine((value) => Object.keys(value).length > 0);
 const deletionSchema = z.object({ confirmName: z.string().min(1).max(80) }).strict();
 
-export async function getProjects(context: ApiContext): Promise<Project[]> {
-  return listOwnedProjects(context.env.DB, (await requireSessionUser(context)).id);
+export async function getProjects(database: D1Database, userId: string): Promise<Project[]> {
+  return listOwnedProjects(database, userId);
 }
 
-export async function createProject(context: ApiContext): Promise<Project> {
-  assertMutationOrigin(context);
-  const user = await requireSessionUser(context);
-  const values = projectSchema.safeParse(await readBoundedJson(context.req.raw));
+export async function createProject(
+  database: D1Database,
+  userId: string,
+  request: Request,
+): Promise<Project> {
+  const values = projectSchema.safeParse(await readBoundedJson(request));
   if (!values.success) throw invalidProject();
   const now = new Date().toISOString();
   const project = { id: crypto.randomUUID(), ...values.data, createdAt: now, updatedAt: now };
-  if (!(await insertProject(context.env.DB, { ...project, ownerId: user.id })))
+  if (!(await insertProject(database, { ...project, ownerId: userId })))
     throw new RequestError(
       409,
       'resource_limit',
@@ -47,15 +49,18 @@ export async function createProject(context: ApiContext): Promise<Project> {
   return project;
 }
 
-export async function editProject(context: ApiContext, projectId: string): Promise<Project> {
-  assertMutationOrigin(context);
-  await requireProjectOwner(context, projectId);
-  const values = editSchema.safeParse(await readBoundedJson(context.req.raw));
+export async function editProject(
+  database: D1Database,
+  userId: string,
+  projectId: string,
+  request: Request,
+): Promise<Project> {
+  await requireProjectOwner(database, userId, projectId);
+  const values = editSchema.safeParse(await readBoundedJson(request));
   if (!values.success) throw invalidProject();
-  const user = await requireSessionUser(context);
-  const updated = await updateOwnedProject(context.env.DB, {
+  const updated = await updateOwnedProject(database, {
     projectId,
-    ownerId: user.id,
+    ownerId: userId,
     name: values.data.name,
     description: values.data.description,
     updatedAt: new Date().toISOString(),
@@ -64,40 +69,47 @@ export async function editProject(context: ApiContext, projectId: string): Promi
   return updated;
 }
 
-export async function removeProject(context: ApiContext, projectId: string): Promise<void> {
-  assertMutationOrigin(context);
-  const project = await requireProjectOwner(context, projectId);
-  const body = deletionSchema.safeParse(await readBoundedJson(context.req.raw));
+export async function removeProject(
+  database: D1Database,
+  userId: string,
+  projectId: string,
+  request: Request,
+): Promise<void> {
+  const project = await requireProjectOwner(database, userId, projectId);
+  const body = deletionSchema.safeParse(await readBoundedJson(request));
   if (!body.success || body.data.confirmName !== project.name)
     throw new RequestError(
       400,
       'confirmation_required',
       'Enter the current project name to confirm deletion.',
     );
-  const user = await requireSessionUser(context);
   if (
-    !(await deleteOwnedProject(context.env.DB, {
+    !(await deleteOwnedProject(database, {
       projectId,
-      ownerId: user.id,
+      ownerId: userId,
       confirmName: body.data.confirmName,
     }))
   )
     throw missingKeyOrProject();
 }
 
-export async function getProjectKeys(context: ApiContext, projectId: string): Promise<ApiKey[]> {
-  await requireProjectOwner(context, projectId);
-  return listProjectKeys(context.env.DB, projectId);
+export async function getProjectKeys(
+  database: D1Database,
+  userId: string,
+  projectId: string,
+): Promise<{ items: ApiKey[]; historyLimit: number }> {
+  await requireProjectOwner(database, userId, projectId);
+  return { items: await listProjectKeys(database, projectId), historyLimit: KEY_HISTORY_LIMIT };
 }
 
 export async function createProjectApiKey(
-  context: ApiContext,
+  database: D1Database,
+  userId: string,
   projectId: string,
 ): Promise<{ apiKey: ApiKey; key: string }> {
-  assertMutationOrigin(context);
-  await requireProjectOwner(context, projectId);
+  await requireProjectOwner(database, userId, projectId);
   const key = await createIngestionKey();
-  const apiKey = await insertProjectKey(context.env.DB, {
+  const apiKey = await insertProjectKey(database, {
     projectId,
     key,
     createdAt: new Date().toISOString(),
@@ -112,12 +124,12 @@ export async function createProjectApiKey(
 }
 
 export async function revokeProjectApiKey(
-  context: ApiContext,
+  database: D1Database,
+  userId: string,
   input: { projectId: string; keyId: string },
 ): Promise<void> {
-  assertMutationOrigin(context);
-  await requireProjectOwner(context, input.projectId);
-  const key = await revokeProjectKey(context.env.DB, {
+  await requireProjectOwner(database, userId, input.projectId);
+  const key = await revokeProjectKey(database, {
     ...input,
     revokedAt: new Date().toISOString(),
   });
@@ -125,13 +137,13 @@ export async function revokeProjectApiKey(
 }
 
 export async function rotateProjectApiKey(
-  context: ApiContext,
+  database: D1Database,
+  userId: string,
   input: { projectId: string; keyId: string },
 ): Promise<{ apiKey: ApiKey; key: string }> {
-  assertMutationOrigin(context);
-  await requireProjectOwner(context, input.projectId);
+  await requireProjectOwner(database, userId, input.projectId);
   const key = await createIngestionKey();
-  const apiKey = await rotateProjectKey(context.env.DB, {
+  const apiKey = await rotateProjectKey(database, {
     projectId: input.projectId,
     previousKeyId: input.keyId,
     key,

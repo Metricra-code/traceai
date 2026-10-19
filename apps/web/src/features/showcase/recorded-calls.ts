@@ -1,4 +1,4 @@
-import type { RecordedCall } from './showcase';
+import type { RecordedCall } from './model';
 
 // Owner-approved operational projection, read back from D1; no private identifiers or content.
 export const recordedCalls = [

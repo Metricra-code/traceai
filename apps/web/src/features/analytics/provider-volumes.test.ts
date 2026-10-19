@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { providerVolumes } from './analytics';
+import { providerVolumes } from './provider-volumes';
 
 describe('provider volume aggregation', () => {
   it('preserves request totals and first-seen provider order without mutating inputs', () => {

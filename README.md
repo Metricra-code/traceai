@@ -127,8 +127,10 @@ failed Playwright runs retain trace/report artifacts. Test source is not proof t
 
 ## Architecture and boundaries
 
-- `apps/web`: Next.js App Router, React Query, TanStack Table, Recharts and a same-origin API proxy.
-- `apps/api`: Hono routes → services → D1 repositories; private password-hashing Durable Object.
+- `apps/web`: Next.js App Router feature modules (React Query, Recharts) and a same-origin API proxy;
+  lint enforces one-way imports between `app/`, `features/`, `components/` and `lib/`.
+- `apps/api`: Hono routes → services → D1 repositories (services never see the HTTP context);
+  private password-hashing Durable Object. [Source layout](docs/architecture.md#source-layout-and-dependency-rules).
 - `packages/sdk`: framework-independent public ESM package; Zod is its only runtime dependency.
 - `packages/opentelemetry`: optional server-side GenAI exporter; the core SDK has no OTel dependency.
 - `packages/shared`: strict Zod contracts, nearest-rank percentiles and integer monetary arithmetic.

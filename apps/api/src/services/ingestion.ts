@@ -8,7 +8,7 @@ import {
 } from '../repositories/ingestion';
 import { parseIngestionKey, verifyIngestionSecret } from './api-keys';
 import { readBoundedJson } from './bounded-json';
-import { RequestError } from './http-errors';
+import { RateLimitError, RequestError } from './http-errors';
 import { estimateTraceCost } from './pricing';
 
 export async function authenticateIngestion(
@@ -60,13 +60,11 @@ export async function ingestBatch(
 
 export async function enforceIngestionRate(database: D1Database, keyId: string): Promise<void> {
   const result = await countIngestionRequest(database, keyId);
-  if (!result.allowed) throw new IngestionRateError(result.retryAfterSeconds);
-}
-
-export class IngestionRateError extends RequestError {
-  constructor(readonly retryAfterSeconds: number) {
-    super(429, 'rate_limited', 'The ingestion rate limit has been reached.');
-  }
+  if (!result.allowed)
+    throw new RateLimitError(
+      result.retryAfterSeconds,
+      'The ingestion rate limit has been reached.',
+    );
 }
 
 function unauthorized(): RequestError {

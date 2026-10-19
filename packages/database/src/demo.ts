@@ -1,7 +1,6 @@
 import { estimateCostNanoUsd, type TraceEvent } from '@traceai/shared';
-export const DEMO_PROJECT_ID = 'demo';
 export const DEMO_ANCHOR = '2026-10-09T00:00:00.000Z';
-export interface DemoModel {
+interface DemoModel {
   provider: string;
   model: string;
   baseLatencyMs: number;
@@ -50,12 +49,12 @@ const random = (index: number, salt: number): number => {
   const seed = Math.imul(index + 1, 0x45d9f3b) ^ Math.imul(salt, 0x27d4eb2d);
   return (Math.imul(seed ^ (seed >>> 16), 0x45d9f3b) >>> 0) / 0x100000000;
 };
-export interface DemoTrace {
+interface DemoTrace {
   event: TraceEvent;
   estimatedCostNanoUsd: string | null;
   pricingVersion: string | null;
 }
-export const createDemoTrace = (index: number, anchor: string = DEMO_ANCHOR): DemoTrace => {
+const createDemoTrace = (index: number, anchor: string = DEMO_ANCHOR): DemoTrace => {
   const model = DEMO_MODELS[index % DEMO_MODELS.length]!;
   const failed = random(index, 1) < 0.065;
   const durationMs = Math.round(
