@@ -1,4 +1,5 @@
 'use client';
+import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import type { ModelComparison } from '@traceai/shared';
@@ -7,6 +8,54 @@ import { PageTitle } from '@/components/ui/page-title';
 import { api, cost, integer, latency } from '@/lib/api';
 import { useDashboard } from '@/features/dashboard';
 import { COLORS } from './metric-chart';
+const COLUMNS: { header: string; numeric?: true; cell: (item: ModelComparison) => ReactNode }[] = [
+  {
+    header: 'Model / provider',
+    cell: (item) => (
+      <>
+        <strong>{item.model}</strong>
+        <div className="muted small">{item.provider}</div>
+      </>
+    ),
+  },
+  {
+    header: 'Requests',
+    numeric: true,
+    cell: (item) => <span className="mono">{integer(item.totalRequests)}</span>,
+  },
+  {
+    header: 'Avg latency',
+    numeric: true,
+    cell: (item) => <span className="mono">{latency(item.averageLatencyMs)}</span>,
+  },
+  {
+    header: 'P95 latency',
+    numeric: true,
+    cell: (item) => <span className="mono">{latency(item.p95LatencyMs)}</span>,
+  },
+  {
+    header: 'Success rate',
+    numeric: true,
+    cell: (item) => <span className="mono">{((1 - item.errorRate) * 100).toFixed(1)}%</span>,
+  },
+  {
+    header: 'Tokens',
+    numeric: true,
+    cell: (item) => <span className="mono">{integer(item.inputTokens + item.outputTokens)}</span>,
+  },
+  {
+    header: 'Estimated cost',
+    numeric: true,
+    cell: (item) => (
+      <>
+        {cost(item.estimatedCostNanoUsd)}
+        <div className="muted small">
+          {item.pricedRequests}/{item.totalRequests} priced
+        </div>
+      </>
+    ),
+  },
+];
 export function ModelsView() {
   const { apiBase, query, demo } = useDashboard();
   const result = useQuery({
@@ -75,23 +124,19 @@ export function ModelsView() {
             </div>
           </section>
           <div className="table-scroll">
-            <table>
+            <table className="responsive-table">
               <caption>
                 Model performance in selected UTC window{demo ? ' · simulated' : ''}
               </caption>
               <thead>
                 <tr>
-                  {[
-                    'Model / provider',
-                    'Requests',
-                    'Avg latency',
-                    'P95 latency',
-                    'Success rate',
-                    'Tokens',
-                    'Estimated cost',
-                  ].map((item) => (
-                    <th key={item} scope="col">
-                      {item}
+                  {COLUMNS.map((column) => (
+                    <th
+                      key={column.header}
+                      scope="col"
+                      className={column.numeric ? 'numeric' : undefined}
+                    >
+                      {column.header}
                     </th>
                   ))}
                 </tr>
@@ -99,21 +144,15 @@ export function ModelsView() {
               <tbody>
                 {items.map((item) => (
                   <tr key={`${item.provider}/${item.model}`}>
-                    <td>
-                      <strong>{item.model}</strong>
-                      <div className="muted small">{item.provider}</div>
-                    </td>
-                    <td className="mono">{integer(item.totalRequests)}</td>
-                    <td className="mono">{latency(item.averageLatencyMs)}</td>
-                    <td className="mono">{latency(item.p95LatencyMs)}</td>
-                    <td className="mono">{((1 - item.errorRate) * 100).toFixed(1)}%</td>
-                    <td className="mono">{integer(item.inputTokens + item.outputTokens)}</td>
-                    <td>
-                      {cost(item.estimatedCostNanoUsd)}
-                      <div className="muted small">
-                        {item.pricedRequests}/{item.totalRequests} priced
-                      </div>
-                    </td>
+                    {COLUMNS.map((column) => (
+                      <td
+                        key={column.header}
+                        data-label={column.header}
+                        className={column.numeric ? 'numeric' : undefined}
+                      >
+                        {column.cell(item)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>

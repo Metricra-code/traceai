@@ -56,7 +56,7 @@ function TraceExplorer() {
     queryKey: [apiBase, 'traces', search],
     queryFn: ({ signal }) => api<TracePage>(`${apiBase}/traces?${search}`, { signal }),
   });
-  const columns: { header: string; cell: (trace: Trace) => ReactNode }[] = [
+  const columns: { header: string; numeric?: true; cell: (trace: Trace) => ReactNode }[] = [
     {
       header: 'Trace ID',
       cell: (trace) => (
@@ -71,10 +71,12 @@ function TraceExplorer() {
     { header: 'Status', cell: (trace) => <Status status={trace.status} /> },
     {
       header: 'Latency',
+      numeric: true,
       cell: (trace) => <span className="mono">{latency(trace.durationMs)}</span>,
     },
     {
       header: 'Tokens',
+      numeric: true,
       cell: (trace) => (
         <span className="mono">
           {trace.inputTokens === undefined || trace.outputTokens === undefined
@@ -83,7 +85,11 @@ function TraceExplorer() {
         </span>
       ),
     },
-    { header: 'Estimated cost', cell: (trace) => cost(trace.estimatedCostNanoUsd) },
+    {
+      header: 'Estimated cost',
+      numeric: true,
+      cell: (trace) => cost(trace.estimatedCostNanoUsd),
+    },
     {
       header: 'Started (UTC)',
       cell: (trace) => <span className="mono small">{utc(trace.startedAt)}</span>,
@@ -122,12 +128,16 @@ function TraceExplorer() {
         </Empty>
       ) : (
         <div className="table-scroll">
-          <table>
+          <table className="responsive-table">
             <caption className="sr-only">Project traces with server-side filters</caption>
             <thead>
               <tr>
                 {columns.map((column) => (
-                  <th key={column.header} scope="col">
+                  <th
+                    key={column.header}
+                    scope="col"
+                    className={column.numeric ? 'numeric' : undefined}
+                  >
                     {column.header}
                   </th>
                 ))}
@@ -137,7 +147,13 @@ function TraceExplorer() {
               {result.data.items.map((trace) => (
                 <tr key={trace.traceId}>
                   {columns.map((column) => (
-                    <td key={column.header}>{column.cell(trace)}</td>
+                    <td
+                      key={column.header}
+                      data-label={column.header}
+                      className={column.numeric ? 'numeric' : undefined}
+                    >
+                      {column.cell(trace)}
+                    </td>
                   ))}
                 </tr>
               ))}

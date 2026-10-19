@@ -31,3 +31,39 @@ test('mobile demo keeps controls accessible without document overflow', async ({
     true,
   );
 });
+
+test('phone-width trace rows show key fields without horizontal scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/demo/traces');
+  const row = page.locator('tbody tr').first();
+  await expect(row).toBeVisible();
+  const scroller = page.locator('.table-scroll');
+  expect(await scroller.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+    true,
+  );
+  for (const index of [0, 3, 4, 5, 8]) {
+    const box = await row.locator('td').nth(index).boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(375);
+  }
+  await expect(page.getByRole('columnheader', { name: 'Latency', exact: true })).toBeAttached();
+});
+
+test('desktop data tables right-align numeric columns', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/demo/models');
+  await expect(page.locator('tbody tr').first()).toBeVisible();
+  for (const name of ['Requests', 'P95 latency', 'Estimated cost']) {
+    const header = page.getByRole('columnheader', { name, exact: true });
+    await expect(header).toHaveCSS('text-align', 'right');
+  }
+  await expect(page.locator('tbody tr').first().locator('td').nth(3)).toHaveCSS(
+    'text-align',
+    'right',
+  );
+  await expect(page.getByRole('columnheader', { name: 'Model / provider' })).toHaveCSS(
+    'text-align',
+    'left',
+  );
+});

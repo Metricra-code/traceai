@@ -93,26 +93,42 @@ export function Measurements({ items }: { items: readonly RecordedSample[] }) {
         role="region"
         aria-label="Recorded calls table scroll area"
       >
-        <table aria-label="Recorded model calls">
+        <table className="responsive-table" aria-label="Recorded model calls">
           <thead>
             <tr>
               <th scope="col">Sample</th>
               <th scope="col">Model</th>
-              <th scope="col">Latency</th>
-              <th scope="col">Input tokens</th>
-              <th scope="col">Output tokens</th>
+              <th scope="col" className="numeric">
+                Latency
+              </th>
+              <th scope="col" className="numeric">
+                Input tokens
+              </th>
+              <th scope="col" className="numeric">
+                Output tokens
+              </th>
               <th scope="col">Status</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
               <tr key={item.sampleNumber}>
-                <th scope="row">Call {item.sampleNumber}</th>
-                <td className="mono">{item.model}</td>
-                <td className="mono">{latency(item.durationMs)}</td>
-                <td className="mono">{formatTokens(item.inputTokens)}</td>
-                <td className="mono">{formatTokens(item.outputTokens)}</td>
-                <td>
+                <th scope="row" data-label="Sample">
+                  Call {item.sampleNumber}
+                </th>
+                <td className="mono" data-label="Model">
+                  {item.model}
+                </td>
+                <td className="mono numeric" data-label="Latency">
+                  {latency(item.durationMs)}
+                </td>
+                <td className="mono numeric" data-label="Input tokens">
+                  {formatTokens(item.inputTokens)}
+                </td>
+                <td className="mono numeric" data-label="Output tokens">
+                  {formatTokens(item.outputTokens)}
+                </td>
+                <td data-label="Status">
                   <Status status={item.status} />
                 </td>
               </tr>

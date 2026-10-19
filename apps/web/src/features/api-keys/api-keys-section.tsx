@@ -74,7 +74,7 @@ export function ApiKeysSection({
         </Empty>
       ) : (
         <div className="table-scroll">
-          <table>
+          <table className="responsive-table">
             <caption className="sr-only">Project ingestion API keys</caption>
             <thead>
               <tr>
@@ -88,11 +88,17 @@ export function ApiKeysSection({
             <tbody>
               {keys.data.items.map((key) => (
                 <tr key={key.id}>
-                  <td className="mono">{key.keyPrefix}…</td>
-                  <td className="small">{utc(key.createdAt)}</td>
-                  <td className="small">{key.lastUsedAt ? utc(key.lastUsedAt) : 'Never'}</td>
-                  <td>{key.revokedAt ? 'Revoked' : 'Active'}</td>
-                  <td>
+                  <td className="mono" data-label="Key prefix">
+                    {key.keyPrefix}…
+                  </td>
+                  <td className="small" data-label="Created">
+                    {utc(key.createdAt)}
+                  </td>
+                  <td className="small" data-label="Last used">
+                    {key.lastUsedAt ? utc(key.lastUsedAt) : 'Never'}
+                  </td>
+                  <td data-label="Status">{key.revokedAt ? 'Revoked' : 'Active'}</td>
+                  <td className="cell-wide" data-label="Actions">
                     <div className="row-actions">
                       {!key.revokedAt && (
                         <>
