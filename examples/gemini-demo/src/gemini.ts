@@ -61,11 +61,11 @@ interface RunConfig {
   model: string;
   count: number;
 }
-export interface ParsedResponse {
+interface ParsedResponse {
   usage?: Usage;
   actualModelVersion?: string;
 }
-export interface DemoDependencies {
+interface DemoDependencies {
   providerFetch?: typeof globalThis.fetch;
   telemetryFetch?: typeof globalThis.fetch;
 }
@@ -75,7 +75,7 @@ interface DeliveryDiagnostics {
   droppedEvents: number;
   invalidEvents: number;
 }
-export interface RealRunSummary {
+interface RealRunSummary {
   mode: 'real';
   requestedModel: string;
   actualModelVersions: readonly string[];

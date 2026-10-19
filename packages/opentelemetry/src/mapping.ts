@@ -14,7 +14,7 @@ export interface SpanMappers {
   /** Failure-only opt-in. Never reads status descriptions, events or exception messages itself. */
   errorSummary?: (span: ReadableSpan) => string | undefined;
 }
-export type MappedSpan =
+type MappedSpan =
   { status: 'ignored' } | { status: 'invalid' } | { status: 'mapped'; event: CompletedTrace };
 
 const label = (value: unknown): string | undefined =>

@@ -22,8 +22,7 @@ const querySchema = z
     sort: z.enum(['recorded', 'latency-asc', 'latency-desc']).default('recorded'),
   })
   .strict();
-export type ShowcaseQuery = z.infer<typeof querySchema>;
-export type ShowcaseSort = ShowcaseQuery['sort'];
+type ShowcaseQuery = z.infer<typeof querySchema>;
 
 export interface ShowcaseSummary {
   totalRequests: number;

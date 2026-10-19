@@ -17,4 +17,3 @@ authRouter.post('/logout', async (context) => {
   await endUserSession(context);
   return context.body(null, 204);
 });
-export default authRouter;

@@ -51,4 +51,3 @@ projectRouter.post('/:id/api-keys/:keyId/rotate', async (context) =>
     201,
   ),
 );
-export default projectRouter;

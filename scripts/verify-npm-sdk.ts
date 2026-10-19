@@ -82,7 +82,7 @@ async function readPublicBytes(url: string, maximum: number): Promise<Uint8Array
   }
 }
 
-export const runtimeFixture = (packageName: string) => `
+const runtimeFixture = (packageName: string) => `
 import assert from 'node:assert/strict';
 import { TraceAI } from ${JSON.stringify(packageName)};
 const uploaded = [];

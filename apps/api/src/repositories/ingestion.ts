@@ -18,7 +18,7 @@ export interface IngestionPrincipal {
 interface EventPricing extends PricingVersion {
   traceId: string;
 }
-export type PricedEvent = TraceEvent & TraceCost;
+type PricedEvent = TraceEvent & TraceCost;
 
 export async function findIngestionKey(
   database: D1Database,

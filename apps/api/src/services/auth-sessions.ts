@@ -12,7 +12,7 @@ import { RequestError } from './http-errors';
 
 export type ApiContext = Context<{ Bindings: Bindings; Variables: { requestId: string } }>;
 export const SESSION_COOKIE_NAME = 'traceai_session';
-export const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function hashSessionToken(token: string): Promise<string> {
   const bytes = new Uint8Array(
