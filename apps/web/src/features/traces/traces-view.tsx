@@ -1,7 +1,6 @@
 'use client';
-import { useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useReactTable, getCoreRowModel, flexRender, type ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import type { ModelComparison, Trace, TracePage } from '@traceai/shared';
 import { Empty, Failure, Loading, Status } from '@/components/ui/feedback';
@@ -57,65 +56,39 @@ function TraceExplorer() {
     queryKey: [apiBase, 'traces', search],
     queryFn: ({ signal }) => api<TracePage>(`${apiBase}/traces?${search}`, { signal }),
   });
-  const columns = useMemo<ColumnDef<Trace>[]>(
-    () => [
-      {
-        accessorKey: 'traceId',
-        header: 'Trace ID',
-        cell: (info) => (
-          <Link
-            className="trace-link mono"
-            href={href(tracePath(basePath, String(info.getValue())))}
-          >
-            {String(info.getValue())}
-          </Link>
-        ),
-      },
-      { accessorKey: 'name', header: 'Operation' },
-      { accessorKey: 'provider', header: 'Provider' },
-      { accessorKey: 'model', header: 'Model' },
-      {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: (info) => <Status status={String(info.getValue())} />,
-      },
-      {
-        accessorKey: 'durationMs',
-        header: 'Latency',
-        cell: (info) => <span className="mono">{latency(Number(info.getValue()))}</span>,
-      },
-      {
-        id: 'tokens',
-        header: 'Tokens',
-        cell: (info) => (
-          <span className="mono">
-            {info.row.original.inputTokens === undefined ||
-            info.row.original.outputTokens === undefined
-              ? 'Not reported'
-              : integer(info.row.original.inputTokens + info.row.original.outputTokens)}
-          </span>
-        ),
-      },
-      {
-        accessorKey: 'estimatedCostNanoUsd',
-        header: 'Estimated cost',
-        cell: (info) => cost(info.getValue() as string | null),
-      },
-      {
-        accessorKey: 'startedAt',
-        header: 'Started (UTC)',
-        cell: (info) => <span className="mono small">{utc(String(info.getValue()))}</span>,
-      },
-    ],
-    [basePath, href],
-  );
-  const table = useReactTable({
-    data: result.data?.items ?? [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    manualSorting: true,
-  });
+  const columns: { header: string; cell: (trace: Trace) => ReactNode }[] = [
+    {
+      header: 'Trace ID',
+      cell: (trace) => (
+        <Link className="trace-link mono" href={href(tracePath(basePath, trace.traceId))}>
+          {trace.traceId}
+        </Link>
+      ),
+    },
+    { header: 'Operation', cell: (trace) => trace.name },
+    { header: 'Provider', cell: (trace) => trace.provider },
+    { header: 'Model', cell: (trace) => trace.model },
+    { header: 'Status', cell: (trace) => <Status status={trace.status} /> },
+    {
+      header: 'Latency',
+      cell: (trace) => <span className="mono">{latency(trace.durationMs)}</span>,
+    },
+    {
+      header: 'Tokens',
+      cell: (trace) => (
+        <span className="mono">
+          {trace.inputTokens === undefined || trace.outputTokens === undefined
+            ? 'Not reported'
+            : integer(trace.inputTokens + trace.outputTokens)}
+        </span>
+      ),
+    },
+    { header: 'Estimated cost', cell: (trace) => cost(trace.estimatedCostNanoUsd) },
+    {
+      header: 'Started (UTC)',
+      cell: (trace) => <span className="mono small">{utc(trace.startedAt)}</span>,
+    },
+  ];
   return (
     <>
       <TraceFilterBar suggestions={options.data?.items} manual={manualFilters} />
@@ -152,23 +125,19 @@ function TraceExplorer() {
           <table>
             <caption className="sr-only">Project traces with server-side filters</caption>
             <thead>
-              {table.getHeaderGroups().map((group) => (
-                <tr key={group.id}>
-                  {group.headers.map((header) => (
-                    <th key={header.id} scope="col">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
+              <tr>
+                {columns.map((column) => (
+                  <th key={column.header} scope="col">
+                    {column.header}
+                  </th>
+                ))}
+              </tr>
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.original.traceId}>
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
+              {result.data.items.map((trace) => (
+                <tr key={trace.traceId}>
+                  {columns.map((column) => (
+                    <td key={column.header}>{column.cell(trace)}</td>
                   ))}
                 </tr>
               ))}
