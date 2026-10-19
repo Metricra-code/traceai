@@ -37,6 +37,29 @@ flowchart LR
     CR[Hourly bounded expired-auth cleanup] -->|expired sessions and counters only| D
 ```
 
+## Source layout and dependency rules
+
+Both apps keep dependencies one-directional, and lint enforces it rather than convention alone.
+
+**API (`apps/api/src`).** `routes/` owns HTTP: input parsing, cookies, Origin checks and client IP.
+`services/` holds business rules and takes plain values, never a Hono context. `repositories/` is the
+only place that touches D1. Types that both services and repositories need live in `domain/`, and
+`env.ts` holds the Worker bindings, so no layer imports upward.
+
+**Web (`apps/web/src`).** The layout follows feature modules:
+
+- `app/` contains thin route files that compose features.
+- `features/<name>/` holds one module per domain (`auth`, `projects`, `api-keys`, `dashboard`,
+  `analytics`, `traces`, `showcase`). Each exposes a public `index.ts`.
+- `components/` holds the app shell and UI primitives.
+- `lib/` holds the API client, formatting and `routes.ts`, the single route table shared by navigation,
+  login `returnTo` validation and the same-origin proxy allowlist.
+
+ESLint (`apps/web/eslint.config.mjs`) rejects imports from `app/`, imports of features from
+`components/` or `lib/`, deep imports into another feature, and import cycles. knip fails the lint gate on
+unused files, exports and dependencies. Styles are split the same way under `app/styles/` (tokens, base,
+layout, tables and one file per feature area).
+
 ## Responsibilities and trust boundaries
 
 - Real public measurements are an immutable owner-approved projection of three already-persisted
