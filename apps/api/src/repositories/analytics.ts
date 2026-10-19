@@ -8,7 +8,7 @@ import {
   type Trace,
   type TraceMetadata,
 } from '@traceai/shared';
-import type { TraceQuery } from '../services/analytics-query';
+import type { TraceQuery } from '../domain/analytics';
 
 export const ANALYTICS_ROW_LIMIT = 20_000;
 export const DEMO_PROJECT_ID = 'demo';

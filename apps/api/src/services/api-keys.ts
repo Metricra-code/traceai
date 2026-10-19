@@ -1,15 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
-
-interface IngestionSecretHash {
-  keyHash: string;
-  keySalt: string;
-}
-
-export interface CreatedIngestionKey extends IngestionSecretHash {
-  id: string;
-  rawKey: string;
-  keyPrefix: string;
-}
+import type { CreatedIngestionKey, IngestionSecretHash } from '../domain/api-keys';
 
 export function parseIngestionKey(rawKey: string): { id: string; secret: string } | undefined {
   const match = /^tai_([a-f0-9]{32})_([a-f0-9]{64})$/.exec(rawKey);

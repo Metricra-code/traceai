@@ -1,17 +1,5 @@
 import { estimateCostNanoUsd, type TraceEvent } from '@traceai/shared';
-
-export interface PricingVersion {
-  id: string;
-  inputNanoUsdPerMillion: string;
-  outputNanoUsdPerMillion: string;
-  simulated: boolean;
-  currency: string;
-}
-
-export interface TraceCost {
-  estimatedCostNanoUsd: number | null;
-  pricingVersion: string | null;
-}
+import type { PricingVersion, TraceCost } from '../domain/pricing';
 
 const unknownCost: TraceCost = { estimatedCostNanoUsd: null, pricingVersion: null };
 

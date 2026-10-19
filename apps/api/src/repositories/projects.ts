@@ -2,7 +2,7 @@ import { apiKeys, projects } from '@traceai/database';
 import type { ApiKey, Project } from '@traceai/shared';
 import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import type { CreatedIngestionKey } from '../services/api-keys';
+import type { CreatedIngestionKey } from '../domain/api-keys';
 
 export const MAX_OWNER_PROJECTS = 100;
 export const MAX_ACTIVE_PROJECT_KEYS = 20;

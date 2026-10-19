@@ -1,7 +1,8 @@
 import { env, exports } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 import { MAX_BATCH_SIZE, MAX_PAYLOAD_BYTES, type TraceEvent } from '@traceai/shared';
-import { createIngestionKey, type CreatedIngestionKey } from '../src/services/api-keys';
+import type { CreatedIngestionKey } from '../src/domain/api-keys';
+import { createIngestionKey } from '../src/services/api-keys';
 import { readTracePage } from '../src/repositories/analytics';
 import {
   countIngestionRequest,

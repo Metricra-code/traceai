@@ -1,26 +1,17 @@
 import { Hono } from 'hono';
-import {
-  authenticateIngestion,
-  enforceIngestionRate,
-  ingestBatch,
-  IngestionRateError,
-} from './services/ingestion';
-import { RequestError } from './services/http-errors';
+import type { ApiEnv } from './env';
 import { analyticsRoutes } from './routes/analytics';
 import { authRouter } from './routes/auth';
+import { healthRoutes } from './routes/health';
+import { ingestionRoutes } from './routes/ingestion';
 import { projectRouter } from './routes/projects';
+import { RateLimitError, RequestError } from './services/http-errors';
 import { PasswordHasher } from './services/password-hasher';
 import { runScheduledCleanup } from './services/cleanup';
 
 export { PasswordHasher };
 
-export interface Bindings {
-  DB: D1Database;
-  PASSWORD_HASHER: DurableObjectNamespace<PasswordHasher>;
-  ENVIRONMENT?: string;
-  WEB_ORIGIN?: string;
-}
-const app = new Hono<{ Bindings: Bindings; Variables: { requestId: string } }>();
+const app = new Hono<ApiEnv>();
 
 app.use('*', async (context, next) => {
   const requestId = crypto.randomUUID();
@@ -31,29 +22,14 @@ app.use('*', async (context, next) => {
   await next();
 });
 
-app.get('/health', async (context) => {
-  const result = await context.env.DB.prepare('SELECT 1 AS connected').first();
-  return context.json(
-    { status: result ? 'ok' : 'error', service: 'traceai-api' },
-    result ? 200 : 503,
-  );
-});
-
-app.post('/v1/events/batch', async (context) => {
-  const principal = await authenticateIngestion(
-    context.env.DB,
-    context.req.header('authorization'),
-  );
-  await enforceIngestionRate(context.env.DB, principal.id);
-  return context.json(await ingestBatch(context.env.DB, principal, context.req.raw), 202);
-});
-
+app.route('/', healthRoutes);
+app.route('/', ingestionRoutes);
 app.route('/v1/auth', authRouter);
 app.route('/v1/projects', projectRouter);
 app.route('/', analyticsRoutes);
 
 app.onError((error, context) => {
-  if (error instanceof IngestionRateError)
+  if (error instanceof RateLimitError)
     context.header('Retry-After', String(error.retryAfterSeconds));
   if (error instanceof RequestError)
     return context.json(
@@ -87,7 +63,11 @@ app.notFound((context) =>
 );
 export default {
   fetch: app.fetch,
-  scheduled(controller: ScheduledController, environment: Bindings, context: ExecutionContext) {
+  scheduled(
+    controller: ScheduledController,
+    environment: ApiEnv['Bindings'],
+    context: ExecutionContext,
+  ) {
     context.waitUntil(runScheduledCleanup(environment.DB, controller.scheduledTime));
   },
 };

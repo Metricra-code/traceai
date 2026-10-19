@@ -8,3 +8,12 @@ export class RequestError extends Error {
     this.name = 'RequestError';
   }
 }
+
+export class RateLimitError extends RequestError {
+  constructor(
+    readonly retryAfterSeconds: number,
+    publicMessage: string,
+  ) {
+    super(429, 'rate_limited', publicMessage);
+  }
+}

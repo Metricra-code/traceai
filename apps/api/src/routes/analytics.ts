@@ -1,5 +1,5 @@
 import { Hono, type Context } from 'hono';
-import type { Bindings } from '../index';
+import type { ApiEnv } from '../env';
 import { requireProjectOwner } from '../services/authorization';
 import { parseAggregateQuery, parseTraceId, parseTraceQuery } from '../services/analytics-query';
 import {
@@ -12,18 +12,19 @@ import {
   publicDemoProjectId,
 } from '../services/analytics';
 import { RequestError } from '../services/http-errors';
+import { currentUser } from './session';
 
-type ApiEnvironment = { Bindings: Bindings; Variables: { requestId: string } };
 interface ReadScope {
   projectId: string;
   defaultTo: string;
 }
-export const analyticsRoutes = new Hono<ApiEnvironment>();
+export const analyticsRoutes = new Hono<ApiEnv>();
 
-async function resolveScope(context: Context<ApiEnvironment>): Promise<ReadScope> {
+async function resolveScope(context: Context<ApiEnv>): Promise<ReadScope> {
   const projectId = context.req.param('projectId');
   if (projectId !== undefined) {
-    await requireProjectOwner(context, projectId);
+    const user = await currentUser(context);
+    await requireProjectOwner(context.env.DB, user.id, projectId);
     return { projectId, defaultTo: new Date().toISOString() };
   }
   const demo = await getDemo(context.env.DB);
@@ -33,7 +34,7 @@ async function resolveScope(context: Context<ApiEnvironment>): Promise<ReadScope
     defaultTo: new Date(Date.parse(demo.anchor) + 1).toISOString(),
   };
 }
-const parameters = (context: Context<ApiEnvironment>) => new URL(context.req.url).searchParams;
+const parameters = (context: Context<ApiEnv>) => new URL(context.req.url).searchParams;
 
 analyticsRoutes.get('/v1/demo', async (context) => {
   if ([...parameters(context)].length)

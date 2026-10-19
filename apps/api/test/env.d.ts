@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/vitest-plugin/types" />
 import type { D1Migration } from 'cloudflare:test';
-import type { Bindings } from '../src';
+import type { Bindings } from '../src/env';
 
 declare global {
   namespace Cloudflare {
