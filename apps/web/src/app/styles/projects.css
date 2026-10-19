@@ -1,0 +1,93 @@
+.project-list {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0 40px;
+}
+.project-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.project-row:hover {
+  border-color: var(--accent);
+}
+.project-row > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.project-row h2 {
+  font-size: 18px;
+}
+.project-row p {
+  font-size: 12px;
+  margin: 8px 0;
+}
+.settings-section {
+  border-top: 1px solid var(--border);
+  padding: 28px 0;
+  margin-top: 24px;
+}
+.settings-section > h2 {
+  margin-bottom: 16px;
+}
+.stacked-form {
+  display: grid;
+  gap: 16px;
+  max-width: 560px;
+}
+.stacked-form button {
+  justify-self: start;
+}
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.row-actions button {
+  font-size: 10px;
+  min-height: 34px;
+}
+.key-reveal {
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  background: var(--panel);
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.key-reveal p {
+  font-size: 12px;
+}
+.key-reveal output {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  user-select: all;
+}
+.key-reveal > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.danger-section {
+  color: var(--danger);
+}
+.danger-section p {
+  font-size: 12px;
+  margin: 8px 0 20px;
+}
+.field-error {
+  color: var(--danger);
+  font-size: 11px;
+}
+@media (max-width: 600px) {
+  .key-reveal {
+    padding: 14px;
+  }
+  .project-row {
+    padding: 18px;
+  }
+}
