@@ -9,9 +9,10 @@ import { credentialsSchema } from '@traceai/shared';
 import type { z } from 'zod';
 import { Activity, ArrowRight } from 'lucide-react';
 import { api } from '@/lib/api';
+import { paths } from '@/lib/routes';
 export function AuthForm({
   register = false,
-  returnTo = '/projects',
+  returnTo = paths.projects,
 }: {
   register?: boolean;
   returnTo?: string;
@@ -40,7 +41,7 @@ export function AuthForm({
   return (
     <main className="auth-page">
       <section className="auth-story">
-        <Link href="/demo" className="brand">
+        <Link href={paths.demo} className="brand">
           <Activity size={25} />
           TraceAI<span className="brand-dot">.</span>
         </Link>
@@ -54,7 +55,7 @@ export function AuthForm({
             Latency, usage, failures. The signals you need, without collecting the content you
             don’t.
           </p>
-          <Link href="/demo">
+          <Link href={paths.demo}>
             Explore the read-only demo <ArrowRight size={16} />
           </Link>
         </div>
@@ -119,7 +120,7 @@ export function AuthForm({
           </form>
           <p className="muted small">
             {register ? 'Already have an account?' : 'New to TraceAI?'}{' '}
-            <Link href={register ? '/login' : '/register'}>
+            <Link href={register ? paths.login : paths.register}>
               {register ? 'Sign in' : 'Create account'}
             </Link>
           </p>

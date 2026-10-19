@@ -2,105 +2,17 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import type { MetricBucket, ModelComparison, Overview } from '@traceai/shared';
-import { useAnalytics } from '@/components/shell';
-import { Empty, Failure, Loading, Title } from '@/components/ui';
+import { Empty, Failure, Loading } from '@/components/ui/feedback';
+import { PageTitle } from '@/components/ui/page-title';
 import { api, cost, integer, latency } from '@/lib/api';
-import { providerVolumes } from '@/lib/analytics';
-const COLORS = [1, 2, 3, 4, 5].map((number) => `var(--chart-${number})`);
-function Chart({
-  title,
-  note,
-  items,
-  lines,
-}: {
-  title: string;
-  note: string;
-  items: MetricBucket[];
-  lines: { key: keyof MetricBucket; name: string; color: string }[];
-}) {
-  const points = items.map((item) => ({
-    ...item,
-    p95LatencyMs: item.totalRequests ? item.p95LatencyMs : null,
-    averageLatencyMs: item.totalRequests ? item.averageLatencyMs : null,
-    label: item.timestamp.slice(5, 16).replace('T', ' '),
-    knownEstimatedCostNanoUsd:
-      item.knownEstimatedCostNanoUsd === null ? null : Number(item.knownEstimatedCostNanoUsd) / 1e9,
-  }));
-  return (
-    <section className="chart-panel" aria-label={title}>
-      <div className="section-heading">
-        <h2>{title}</h2>
-        <span className="muted small">{note}</span>
-      </div>
-      <div className="chart-legend">
-        {lines.map((line) => (
-          <span key={line.key}>
-            <i style={{ background: line.color }} />
-            {line.name}
-          </span>
-        ))}
-      </div>
-      <div className="chart">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <LineChart
-            data={points}
-            margin={{ top: 8, right: 12, bottom: 8, left: 0 }}
-            accessibilityLayer
-          >
-            <CartesianGrid stroke="var(--border)" vertical={false} />
-            <XAxis
-              dataKey="label"
-              tick={{ fill: 'var(--muted)', fontSize: 10 }}
-              minTickGap={60}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              width={48}
-              tick={{ fill: 'var(--muted)', fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              contentStyle={{
-                background: 'var(--panel)',
-                border: '1px solid var(--border)',
-                fontSize: 12,
-              }}
-            />
-            {lines.map((line) => (
-              <Line
-                key={line.key}
-                type="monotone"
-                dataKey={line.key}
-                name={line.name}
-                stroke={line.color}
-                strokeWidth={1.8}
-                dot={false}
-                isAnimationActive={false}
-                connectNulls={false}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </section>
-  );
-}
+import { sectionPath } from '@/lib/routes';
+import { useDashboard } from '@/features/dashboard';
+import { COLORS, MetricChart } from './metric-chart';
+import { providerVolumes } from './provider-volumes';
 export function OverviewView() {
-  const { apiBase, query, demo, basePath, href } = useAnalytics();
+  const { apiBase, query, demo, basePath, href } = useDashboard();
   const overview = useQuery({
     queryKey: [apiBase, 'overview', query],
     queryFn: ({ signal }) => api<Overview>(`${apiBase}/overview?${query}`, { signal }),
@@ -131,12 +43,12 @@ export function OverviewView() {
   const providers = providerVolumes(models.data.items);
   return (
     <>
-      <Title
+      <PageTitle
         eyebrow="APPLICATION HEALTH"
         subtitle="The numbers behind every operation. Not the prompts inside it."
       >
         Overview
-      </Title>
+      </PageTitle>
       <div className="metric-strip">
         <div>
           <p>Total requests</p>
@@ -187,7 +99,7 @@ export function OverviewView() {
               : 'Generate an ingestion key and wrap an operation with the SDK. No AI provider credentials are needed to try the mock example.'}
           </p>
           {!demo && (
-            <Link className="button" href={`${basePath}/settings`}>
+            <Link className="button" href={sectionPath(basePath, 'settings')}>
               Set up the SDK <ArrowUpRight size={15} />
             </Link>
           )}
@@ -200,7 +112,7 @@ export function OverviewView() {
             <span>Nearest-rank percentiles · {metrics.data.bucket} buckets</span>
           </div>
           <div className="charts-grid">
-            <Chart
+            <MetricChart
               title="Request volume"
               note="requests / bucket"
               items={metrics.data.items}
@@ -209,7 +121,7 @@ export function OverviewView() {
                 { key: 'failedRequests', name: 'Errors', color: COLORS[1]! },
               ]}
             />
-            <Chart
+            <MetricChart
               title="Latency distribution over time"
               note="milliseconds"
               items={metrics.data.items}
@@ -218,7 +130,7 @@ export function OverviewView() {
                 { key: 'averageLatencyMs', name: 'Average', color: COLORS[2]! },
               ]}
             />
-            <Chart
+            <MetricChart
               title="Token usage"
               note="explicit SDK usage only"
               items={metrics.data.items}
@@ -227,7 +139,7 @@ export function OverviewView() {
                 { key: 'outputTokens', name: 'Output', color: COLORS[3]! },
               ]}
             />
-            <Chart
+            <MetricChart
               title={demo ? 'Simulated priced-request cost' : 'Priced-request cost'}
               note="USD · unknown requests excluded"
               items={metrics.data.items}
@@ -282,7 +194,7 @@ export function OverviewView() {
             <section className="chart-panel">
               <div className="section-heading">
                 <h2>Model usage</h2>
-                <Link href={href(`${basePath}/models`)}>
+                <Link href={href(sectionPath(basePath, 'models'))}>
                   Compare models <ArrowUpRight size={13} />
                 </Link>
               </div>
@@ -314,127 +226,6 @@ export function OverviewView() {
           {demo ? ' Demo prices are fictional.' : ''}
         </p>
       )}
-    </>
-  );
-}
-export function ModelsView() {
-  const { apiBase, query, demo } = useAnalytics();
-  const result = useQuery({
-    queryKey: [apiBase, 'models', query],
-    queryFn: ({ signal }) =>
-      api<{ items: ModelComparison[] }>(`${apiBase}/models?${query}`, { signal }),
-  });
-  if (result.error) return <Failure error={result.error} retry={() => void result.refetch()} />;
-  if (!result.data) return <Loading />;
-  const items = result.data.items;
-  return (
-    <>
-      <Title
-        eyebrow="OPERATIONAL PERFORMANCE"
-        subtitle="Compare speed, reliability and usage — not model quality or accuracy."
-      >
-        Model comparison
-      </Title>
-      {!items.length ? (
-        <Empty>
-          <h2>No models in this window</h2>
-          <p>Try a wider date range or instrument your first operation.</p>
-        </Empty>
-      ) : (
-        <>
-          <section className="chart-panel model-comparison-chart">
-            <div className="section-heading">
-              <h2>P95 latency by model</h2>
-              <span className="muted small">Lower is faster · milliseconds</span>
-            </div>
-            <div className="chart">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart
-                  data={items}
-                  layout="vertical"
-                  margin={{ right: 24, left: 0 }}
-                  accessibilityLayer
-                >
-                  <CartesianGrid stroke="var(--border)" vertical={false} />
-                  <XAxis
-                    type="number"
-                    tick={{ fill: 'var(--muted)', fontSize: 10 }}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey={(item: ModelComparison) => `${item.provider} / ${item.model}`}
-                    width={160}
-                    tick={{ fill: 'var(--muted)', fontSize: 10 }}
-                    interval={0}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{ background: 'var(--panel)', border: '1px solid var(--border)' }}
-                  />
-                  <Bar
-                    dataKey="p95LatencyMs"
-                    name="P95 (ms)"
-                    fill={COLORS[1]}
-                    barSize={36}
-                    isAnimationActive={false}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-          <div className="table-scroll">
-            <table>
-              <caption>
-                Model performance in selected UTC window{demo ? ' · simulated' : ''}
-              </caption>
-              <thead>
-                <tr>
-                  {[
-                    'Model / provider',
-                    'Requests',
-                    'Avg latency',
-                    'P95 latency',
-                    'Success rate',
-                    'Tokens',
-                    'Estimated cost',
-                  ].map((item) => (
-                    <th key={item} scope="col">
-                      {item}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={`${item.provider}/${item.model}`}>
-                    <td>
-                      <strong>{item.model}</strong>
-                      <div className="muted small">{item.provider}</div>
-                    </td>
-                    <td className="mono">{integer(item.totalRequests)}</td>
-                    <td className="mono">{latency(item.averageLatencyMs)}</td>
-                    <td className="mono">{latency(item.p95LatencyMs)}</td>
-                    <td className="mono">{((1 - item.errorRate) * 100).toFixed(1)}%</td>
-                    <td className="mono">{integer(item.inputTokens + item.outputTokens)}</td>
-                    <td>
-                      {cost(item.estimatedCostNanoUsd)}
-                      <div className="muted small">
-                        {item.pricedRequests}/{item.totalRequests} priced
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
-      <p className="footnote">
-        Nearest-rank P95. Workloads and token sizes differ between models; this is not a controlled
-        benchmark.{demo ? ' All traces and prices are simulated.' : ''}
-      </p>
     </>
   );
 }

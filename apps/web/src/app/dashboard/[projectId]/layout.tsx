@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from 'react';
-import { DashboardFrame } from '@/components/shell';
-import { Loading } from '@/components/ui';
+import { Loading } from '@/components/ui/feedback';
+import { DashboardFrame } from '@/features/dashboard';
 export default async function Layout({
   children,
   params,

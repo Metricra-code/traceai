@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { Shell } from '@/components/shell';
-import { Loading } from '@/components/ui';
+import { AppShell } from '@/components/layout/app-shell';
+import { Loading } from '@/components/ui/feedback';
 import { ShowcaseView } from '@/features/showcase';
 
 export const metadata: Metadata = {
@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <Shell basePath="/showcase">
+    <AppShell variant="showcase">
       <Suspense fallback={<Loading />}>
         <ShowcaseView />
       </Suspense>
-    </Shell>
+    </AppShell>
   );
 }

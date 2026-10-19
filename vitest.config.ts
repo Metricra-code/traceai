@@ -7,13 +7,14 @@ export default defineConfig({
       '@akai_80percent/traceai-sdk': fileURLToPath(
         new URL('./packages/sdk/src/index.ts', import.meta.url),
       ),
+      '@/': fileURLToPath(new URL('./apps/web/src/', import.meta.url)),
     },
   },
   test: {
     include: [
       'packages/**/*.test.ts',
       'apps/api/src/**/*.test.ts',
-      'apps/web/src/lib/**/*.test.ts',
+      'apps/web/src/**/*.test.ts',
       'examples/gemini-demo/src/**/*.test.ts',
       'scripts/**/*.test.ts',
     ],
